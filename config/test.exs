@@ -4,15 +4,17 @@ import Config
 # you can enable the server option below.
 config :tails, TailsWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
-  secret_key_base: "go9rSY5y8zjBI+y6EE9lxpfqQ7n6lJpkDWKtrfu88YyJYTAkcFgIgdKc1y8P9feP",
+  secret_key_base: "jL+jAXQfWvILYEYDuNjHpVKlhClWiyXt/KRQy8cySo0Cls7hFcgiJ30REtH4JmAu",
   server: false
 
 # In test we don't send emails.
-config :tails, Tails.Mailer,
-  adapter: Swoosh.Adapters.Test
+config :tails, Tails.Mailer, adapter: Swoosh.Adapters.Test
+
+# Disable swoosh api client as it is only required for production adapters.
+config :swoosh, :api_client, false
 
 # Print only warnings and errors during test
-config :logger, level: :warn
+config :logger, level: :warning
 
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime

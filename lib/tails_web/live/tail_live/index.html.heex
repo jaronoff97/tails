@@ -1,0 +1,8 @@
+<h1>Live Tail</h1>
+<li id="messages">
+  <%= for message <- @streams.messages do %>
+    <ul id={"message-#{message.id}"}>
+      <td><%= message.data %></td>
+    </ul>
+  <% end %>
+</li>

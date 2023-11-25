@@ -19,15 +19,15 @@ defmodule TailsWeb.ConnCase do
 
   using do
     quote do
+      # The default endpoint for testing
+      @endpoint TailsWeb.Endpoint
+
+      use TailsWeb, :verified_routes
+
       # Import conveniences for testing with connections
       import Plug.Conn
       import Phoenix.ConnTest
       import TailsWeb.ConnCase
-
-      alias TailsWeb.Router.Helpers, as: Routes
-
-      # The default endpoint for testing
-      @endpoint TailsWeb.Endpoint
     end
   end
 
