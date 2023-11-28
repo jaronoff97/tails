@@ -13,9 +13,10 @@ defmodule Tails.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: Tails.PubSub},
       # Start the Endpoint (http/https)
-      TailsWeb.Endpoint
+      TailsWeb.Endpoint,
       # Start a worker by calling: Tails.Worker.start_link(arg)
       # {Tails.Worker, arg}
+      {Tails.RemoteTapClient, []}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

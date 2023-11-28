@@ -12,6 +12,15 @@ defmodule TailsWeb.Endpoint do
 
   socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
 
+  socket "/v1/opamp", TailsWeb.UserSocket,
+        websocket: [
+          connect_info: [session: @session_options],
+          path: "",
+          serializer: [{TailsWeb.OpAMPSerializer, "1.0.0"}],
+          timeout: 900000 # 15 minutes
+        ],
+        longpoll: false
+
   # Serve at "/" the static files from "priv/static" directory.
   #
   # You should set gzip to true if you are running phx.digest
