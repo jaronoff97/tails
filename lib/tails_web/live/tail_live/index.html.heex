@@ -1,8 +1,41 @@
-<h1>Live Tail</h1>
-<li id="messages">
-  <%= for message <- @streams.messages do %>
-    <ul id={"message-#{message.id}"}>
-      <td><%= message.data %></td>
-    </ul>
-  <% end %>
-</li>
+<.simple_form :let={f} for={@form} phx-change="validate" as="form">
+  <div class="mt-4">
+    <.radio_fieldset
+      field={@form[:item]}
+      options={[
+        %{name: "Metrics", id: "metrics"},
+        %{name: "Spans", id: "spans"},
+        %{name: "Logs", id: "logs"}
+      ]}
+      checked_value={@form.params["item"]}
+    />
+  </div>
+</.simple_form>
+<Resource.show messages={@streams.spans} />
+
+<%= case @form.params["item"] do %>
+  <% "Metrics" -> %>
+    <h1>Metrics</h1>
+  <% "Spans" -> %>
+    <div id="spans" phx-update="stream">
+      <div :for={{dom_id, message} <- @streams.spans} id={dom_id}>
+        <h3><%= Jason.encode!(message.data) %></h3>
+      </div>
+    </div>
+  <% "Logs" -> %>
+    <h1>Logs</h1>
+  <% _ -> %>
+    <h1>Unselected</h1>
+<% end %>
+
+<div id="spansDiv" style="display: none;">
+  <!-- Content for Spans -->
+</div>
+
+<div id="metricsDiv" style="display: none;">
+  <!-- Content for Metrics -->
+</div>
+
+<div id="logsDiv" style="display: none;">
+  <!-- Content for Logs -->
+</div>
