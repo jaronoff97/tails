@@ -2,7 +2,7 @@ defmodule TailsWeb.TailLive.Index do
   use TailsWeb, :live_view
 
   alias Tails.Telemetry
-  alias TailsWeb.Otel.Resource
+  alias TailsWeb.Otel.{Resource, Span}
 
   @impl true
   def mount(_params, _session, socket) do
@@ -27,23 +27,23 @@ defmodule TailsWeb.TailLive.Index do
   end
 
   @impl true
-  def handle_info({:new_span, message}, socket) do
-    {:noreply, stream_insert(socket, :spans, message)}
-  end
-
-  @impl true
-  def handle_info({:new_metric, message}, socket) do
-    {:noreply, stream_insert(socket, :metrics, message)}
-  end
-
-  @impl true
-  def handle_info({:new_log, message}, socket) do
-    {:noreply, stream_insert(socket, :logs, message)}
+  def handle_info({stream_name, message}, socket) do
+    {:noreply, stream_insert(socket, stream_name, message, at: 0)}
   end
 
   defp apply_action(socket, :index, _params) do
     socket
     |> assign(:page_title, "Listing Tails")
     |> assign(:tail, nil)
+  end
+
+  defp get_spans(resourceSpans) do
+    resourceSpans
+    |> Enum.reduce([], fn e, acc ->
+      acc ++ e["scopeSpans"]
+    end)
+    |> Enum.reduce([], fn e, acc ->
+      acc ++ e["spans"]
+    end)
   end
 end

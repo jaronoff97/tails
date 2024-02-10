@@ -19,7 +19,7 @@ defmodule Tails.Telemetry do
     broadcast({:ok, m}, message_event(data))
   end
 
-  def message_event(%{"resourceSpans" => _data}), do: :new_span
-  def message_event(%{"resourceMetrics" => _data}), do: :new_metric
-  def message_event(%{"resourceLogs" => _data}), do: :new_log
+  def message_event(%{"resourceSpans" => _data}), do: :spans
+  def message_event(%{"resourceMetrics" => _data}), do: :metrics
+  def message_event(%{"resourceLogs" => _data}), do: :logs
 end

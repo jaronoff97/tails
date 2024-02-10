@@ -7,7 +7,35 @@ defmodule Tails.RemoteTapClient do
     ]
 
     url = "ws://localhost:12001"
-    WebSockex.start_link(url, __MODULE__, state, insecure: true, extra_headers: extra_headers)
+
+    WebSockex.start_link(url, __MODULE__, state,
+      insecure: true,
+      extra_headers: extra_headers,
+      handle_initial_conn_failure: true
+    )
+  end
+
+  def handle_connect(_conn, state) do
+    IO.puts("Connected!")
+    {:ok, state}
+  end
+
+  def handle_disconnect(%{attempt_number: attempt} = _failure_map, state) do
+    IO.puts("Disconnecting, attempting to connect...")
+
+    if attempt < 100 do
+      Process.sleep(1000 * attempt)
+      {:reconnect, state}
+    else
+      IO.puts("failed to connect, exiting.")
+      {:ok, state}
+    end
+  end
+
+  def handle_disconnect(connection_status_map, state) do
+    IO.inspect(connection_status_map)
+    IO.inspect(state)
+    {:ok, state}
   end
 
   def handle_frame({_type, msg}, state) do
@@ -22,7 +50,7 @@ defmodule Tails.RemoteTapClient do
   end
 
   def handle_cast({:send, {type, msg} = frame}, state) do
-    # IO.puts("Sending #{type} frame with payload: #{msg}")
+    IO.puts("Sending #{type} frame with payload: #{msg}")
     {:reply, frame, state}
   end
 end
