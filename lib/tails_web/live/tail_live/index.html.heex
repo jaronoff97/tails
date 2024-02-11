@@ -11,40 +11,35 @@
     />
   </div>
 </.simple_form>
-<%!-- <Resource.show messages={@streams.spans} /> --%>
 
-<%= case @form.params["item"] do %>
-  <% "Metrics" -> %>
-    <h1>Metrics</h1>
-  <% "Spans" -> %>
-    <div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0">
-      <table class="w-[40rem] mt-11 sm:w-full">
-        <thead class="text-sm text-left leading-6 text-zinc-500">
-          <tr>
-            <th class="p-0 pb-4 pr-6 font-normal">TraceId</th>
-            <th class="p-0 pb-4 pr-6 font-normal">ParentSpanId</th>
-            <th class="p-0 pb-4 pr-6 font-normal">SpanId</th>
-            <th class="p-0 pb-4 pr-6 font-normal">StartTimeUnixNano</th>
-            <th class="p-0 pb-4 pr-6 font-normal">EndTimeUnixNano</th>
-            <th class="p-0 pb-4 pr-6 font-normal">Name</th>
-            <th class="p-0 pb-4 pr-6 font-normal">Kind</th>
-            <th class="p-0 pb-4 pr-6 font-normal">Status</th>
-            <th class="p-0 pb-4 pr-6 font-normal">Attributes</th>
+<Resource.show data={@resource} />
+
+<div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0">
+  <table class="w-[40rem] mt-11 sm:w-full">
+    <thead class="text-sm text-left leading-6 text-zinc-500">
+      <tr>
+        <div :for={col_name <- @columns[@form.params["item"]]}>
+          <th class="p-0 pb-4 pr-6 font-normal"><%= col_name %></th>
+        </div>
+      </tr>
+    </thead>
+    <tbody
+      id="data-table-body"
+      phx-update="stream"
+      class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
+    >
+      <%= case @form.params["item"] do %>
+        <% "Metrics" -> %>
+          <tr :for={{row_id, row} <- @streams.metrics} id={row_id} class="group hover:bg-zinc-50">
+            <Metrics.show metrics={row} />
           </tr>
-        </thead>
-        <tbody
-          id="spans-table-body"
-          phx-update="stream"
-          class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
-        >
+        <% "Spans" -> %>
           <tr :for={{row_id, row} <- @streams.spans} id={row_id} class="group hover:bg-zinc-50">
-            <Span.show span={row} />
+            <Spans.show span={row} />
           </tr>
-        </tbody>
-      </table>
-    </div>
-  <% "Logs" -> %>
-    <h1>Logs</h1>
-  <% _ -> %>
-    <h1>Unselected</h1>
-<% end %>
+        <% "Logs" -> %>
+        <% _ -> %>
+      <% end %>
+    </tbody>
+  </table>
+</div>

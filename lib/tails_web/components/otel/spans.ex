@@ -1,4 +1,4 @@
-defmodule TailsWeb.Otel.Span do
+defmodule TailsWeb.Otel.Spans do
   use Phoenix.Component
 
   def show(assigns) do
