@@ -54,7 +54,7 @@ defmodule TailsWeb.TailLive.Index do
 
   @impl true
   def handle_info({stream_name, message}, socket) do
-    IO.inspect(message)
+    # IO.inspect(message)
 
     {:noreply,
      socket

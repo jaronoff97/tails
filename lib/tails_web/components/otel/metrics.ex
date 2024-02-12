@@ -14,9 +14,10 @@ defmodule TailsWeb.Otel.Metrics do
     """
   end
 
+  def get_data(%{"histogram" => %{"dataPoints" => data_points}}), do: data_points
   def get_data(%{"gauge" => %{"dataPoints" => data_points}}), do: data_points
   def get_data(%{"sum" => %{"dataPoints" => data_points}}), do: data_points
-  def get_data(_data, _f), do: nil
+  def get_data(_data), do: nil
 
   defp get_attributes(data_points) do
     data_points
