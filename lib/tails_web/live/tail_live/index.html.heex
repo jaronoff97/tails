@@ -23,23 +23,29 @@
         </div>
       </tr>
     </thead>
-    <tbody
-      id="data-table-body"
-      phx-update="stream"
-      class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
-    >
-      <%= case @form.params["item"] do %>
-        <% "Metrics" -> %>
+    <%= case @form.params["item"] do %>
+      <% "Metrics" -> %>
+        <tbody
+          id="metrics-table-body"
+          phx-update="stream"
+          class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
+        >
           <tr :for={{row_id, row} <- @streams.metrics} id={row_id} class="group hover:bg-zinc-50">
             <Metrics.show metrics={row} />
           </tr>
-        <% "Spans" -> %>
+        </tbody>
+      <% "Spans" -> %>
+        <tbody
+          id="spans-table-body"
+          phx-update="stream"
+          class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
+        >
           <tr :for={{row_id, row} <- @streams.spans} id={row_id} class="group hover:bg-zinc-50">
             <Spans.show span={row} />
           </tr>
-        <% "Logs" -> %>
-        <% _ -> %>
-      <% end %>
-    </tbody>
+        </tbody>
+      <% "Logs" -> %>
+      <% _ -> %>
+    <% end %>
   </table>
 </div>

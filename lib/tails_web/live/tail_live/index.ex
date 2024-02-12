@@ -31,9 +31,9 @@ defmodule TailsWeb.TailLive.Index do
 
     {:ok,
      socket
-     |> stream(:spans, [], at: 0, limit: 10)
-     |> stream(:metrics, [], at: 0, limit: 10)
-     |> stream(:logs, [], at: 0, limit: 10)
+     |> stream(:spans, [], at: -1, limit: -10)
+     |> stream(:metrics, [], at: -1, limit: -10)
+     |> stream(:logs, [], at: -1, limit: -10)
      |> assign(:resource, %{"attributes" => []})
      |> assign(:columns, @columns)
      |> assign(:form, to_form(%{"item" => "Spans"}))}
@@ -54,6 +54,8 @@ defmodule TailsWeb.TailLive.Index do
 
   @impl true
   def handle_info({stream_name, message}, socket) do
+    IO.inspect(message)
+
     {:noreply,
      socket
      |> stream_insert(stream_name, message)
