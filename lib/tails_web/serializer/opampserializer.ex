@@ -55,7 +55,6 @@ defmodule TailsWeb.OpAMPSerializer do
     end
   end
 
-
   defp decode_text(raw_message) do
     [join_ref, ref, topic, event, payload | _] = Phoenix.json_library().decode!(raw_message)
 
@@ -84,9 +83,10 @@ defmodule TailsWeb.OpAMPSerializer do
     end
   end
 
-  defp respond_join(proto)do
+  defp respond_join(proto) do
     Agent.update(:connections, &MapSet.put(&1, proto.instance_uid))
-    IO.puts "JOINING"
+    IO.puts("JOINING")
+
     %Message{
       topic: "agents:" <> proto.instance_uid,
       event: "phx_join",
