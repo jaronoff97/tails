@@ -19,10 +19,15 @@ defmodule TailsWeb.Otel.Metrics do
   def get_data(%{"sum" => %{"dataPoints" => data_points}}), do: data_points
   def get_data(_data), do: nil
 
+  defp get_attributes(nil), do: []
+
   defp get_attributes(data_points) do
+    IO.inspect(data_points)
+
     data_points
     |> Enum.reduce([], fn e, acc ->
-      Enum.concat(acc, e["attributes"])
+      attrs = Map.get(e, "attributes", %{})
+      Enum.concat(acc, attrs)
     end)
   end
 
