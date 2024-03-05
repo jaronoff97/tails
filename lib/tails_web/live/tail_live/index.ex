@@ -1,8 +1,8 @@
 defmodule TailsWeb.TailLive.Index do
   use TailsWeb, :live_view
 
-  alias Tails.Telemetry
-  alias TailsWeb.Otel.{Resource, Spans, Metrics}
+  alias Tails.{Telemetry, Agents}
+  alias TailsWeb.Otel.{Resource, Spans, Metrics, Logs}
 
   @columns %{
     "Metrics" => [
@@ -22,18 +22,26 @@ defmodule TailsWeb.TailLive.Index do
       "Status",
       "Attributes"
     ],
-    "Logs" => []
+    "Logs" => [
+      "timeUnixNano",
+      "severityText",
+      "spanId",
+      "body",
+      "attributes"
+    ]
   }
 
   @impl true
   def mount(_params, _session, socket) do
     if connected?(socket), do: Telemetry.subscribe()
+    if connected?(socket), do: Agents.subscribe()
 
     {:ok,
      socket
      |> stream(:spans, [], at: -1, limit: -10)
      |> stream(:metrics, [], at: -1, limit: -10)
      |> stream(:logs, [], at: -1, limit: -10)
+     |> assign(:config, %{})
      |> assign(:resource, %{"attributes" => []})
      |> assign(:columns, @columns)
      |> assign(:form, to_form(%{"item" => "Spans"}))}
@@ -47,9 +55,37 @@ defmodule TailsWeb.TailLive.Index do
      |> assign(form: to_form(%{"item" => params["item"]}))}
   end
 
+  def toggle_navbar_menu(js \\ %JS{}) do
+    js
+    |> JS.toggle(to: "#menu", in: "fade-in-scale", out: "fade-out-scale")
+  end
+
   @impl true
   def handle_params(params, _url, socket) do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  end
+
+  @impl true
+  def handle_info({:agent_deleted, message}, socket) do
+    {:noreply,
+     socket
+     |> assign(:config, %{})}
+  end
+
+  @impl true
+  def handle_info({:agent_updated, message}, socket) do
+    IO.inspect(message)
+
+    {:noreply,
+     socket
+     |> assign(:config, message)}
+  end
+
+  @impl true
+  def handle_info({:agent_created, message}, socket) do
+    {:noreply,
+     socket
+     |> assign(:config, message)}
   end
 
   @impl true

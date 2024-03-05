@@ -16,7 +16,8 @@ defmodule Tails.Application do
       TailsWeb.Endpoint,
       # Start a worker by calling: Tails.Worker.start_link(arg)
       # {Tails.Worker, arg}
-      {Tails.RemoteTapClient, []}
+      {Tails.RemoteTapClient, []},
+      TailsWeb.OpAMPSerializer
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

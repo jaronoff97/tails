@@ -1,14 +1,15 @@
-defmodule TailsWeb.Otel.Metrics do
+defmodule TailsWeb.Otel.Logs do
   use Phoenix.Component
 
   def show(assigns) do
     ~H"""
-    <div :for={s <- get_metrics(@metrics.data["resourceMetrics"])}>
+    <div :for={s <- get_logs(@logs.data["resourceLogs"])}>
       <tr>
-        <td><%= get_data(s) |> get_latest %></td>
-        <td><%= s["name"] %></td>
-        <td><%= s["description"] %></td>
-        <td><%= get_data(s) |> get_attributes |> Jason.encode!() %></td>
+        <td><%= s["timeUnixNano"] %></td>
+        <td><%= s["severityText"] %></td>
+        <td><%= s["spanId"] %></td>
+        <td><%= s["body"] |> Jason.encode!() %></td>
+        <td><%= s["attributes"] |> Jason.encode!() %></td>
       </tr>
     </div>
     """
@@ -19,15 +20,10 @@ defmodule TailsWeb.Otel.Metrics do
   def get_data(%{"sum" => %{"dataPoints" => data_points}}), do: data_points
   def get_data(_data), do: nil
 
-  defp get_attributes(nil), do: []
-
   defp get_attributes(data_points) do
-    IO.inspect(data_points)
-
     data_points
     |> Enum.reduce([], fn e, acc ->
-      attrs = Map.get(e, "attributes", %{})
-      Enum.concat(acc, attrs)
+      Enum.concat(acc, e["attributes"])
     end)
   end
 
@@ -51,13 +47,13 @@ defmodule TailsWeb.Otel.Metrics do
     end)
   end
 
-  def get_metrics(resourceMetrics) do
-    resourceMetrics
+  def get_logs(resourceLogs) do
+    resourceLogs
     |> Enum.reduce([], fn e, acc ->
-      acc ++ e["scopeMetrics"]
+      acc ++ e["scopeLogs"]
     end)
     |> Enum.reduce([], fn e, acc ->
-      acc ++ e["metrics"]
+      acc ++ e["logRecords"]
     end)
   end
 end
