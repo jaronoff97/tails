@@ -44,6 +44,7 @@ defmodule TailsWeb.TailLive.Index do
      |> assign(:config, %{})
      |> assign(:resource, %{"attributes" => []})
      |> assign(:columns, @columns)
+     |> assign(:remote_tap_started, false)
      |> assign(:form, to_form(%{"item" => "Spans"}))}
   end
 
@@ -86,7 +87,7 @@ defmodule TailsWeb.TailLive.Index do
 
   @impl true
   def handle_info({:agent_updated, message}, socket) do
-    IO.inspect(message)
+    # IO.inspect(message)
 
     {:noreply,
      socket
@@ -95,15 +96,20 @@ defmodule TailsWeb.TailLive.Index do
 
   @impl true
   def handle_info({:agent_created, message}, socket) do
-    IO.inspect(message)
+    case start_remote_tap(socket) do
+      {:ok, socket} ->
+        {:noreply,
+         socket
+         |> assign(:config, message)}
 
-    {:noreply,
-     socket
-     |> assign(:config, message)}
+      {:error, socket} ->
+        {:noreply, socket}
+    end
   end
 
   @impl true
-  def handle_info({:request_config, message}, socket) do
+  def handle_info({:request_config, _message}, socket) do
+    {_ok, socket} = start_remote_tap(socket)
     {:noreply, socket}
   end
 
@@ -113,6 +119,20 @@ defmodule TailsWeb.TailLive.Index do
      socket
      |> bulk_insert_records(stream_name, message)
      |> get_resource(stream_name, message)}
+  end
+
+  defp start_remote_tap(socket) when socket.assigns.remote_tap_started, do: {:ok, socket}
+
+  defp start_remote_tap(socket) do
+    case Tails.RemoteTapClient.start_link([]) do
+      {:ok, _pid} ->
+        {:ok,
+         socket
+         |> assign(:remote_tap_started, true)}
+
+      {:error, reason} ->
+        {:error, put_flash(socket, :error, reason)}
+    end
   end
 
   def bulk_insert_records(socket, stream_name, message) do

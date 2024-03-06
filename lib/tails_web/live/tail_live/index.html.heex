@@ -1,144 +1,243 @@
-<.simple_form :let={f} for={@form} phx-change="validate" as="form">
-  <div class="mt-4">
-    <.radio_fieldset
-      field={@form[:item]}
-      options={[
-        %{name: "Metrics", id: "metrics"},
-        %{name: "Spans", id: "spans"},
-        %{name: "Logs", id: "logs"}
-      ]}
-      checked_value={@form.params["item"]}
-    />
-  </div>
-</.simple_form>
-
-<Resource.show data={@resource} />
-
-<div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0">
-  <table class="w-[40rem] mt-11 sm:w-full">
-    <thead class="text-sm text-left leading-6 text-zinc-500">
-      <tr>
-        <div :for={col_name <- @columns[@form.params["item"]]}>
-          <th class="p-0 pb-4 pr-6 font-normal"><%= col_name %></th>
-        </div>
-      </tr>
-    </thead>
-    <%= case @form.params["item"] do %>
-      <% "Metrics" -> %>
-        <tbody
-          id="metrics-table-body"
-          phx-update="stream"
-          class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
-        >
-          <tr :for={{row_id, row} <- @streams.metrics} id={row_id} class="group hover:bg-zinc-50">
-            <Metric.show metric={row} />
-          </tr>
-        </tbody>
-      <% "Spans" -> %>
-        <tbody
-          id="spans-table-body"
-          phx-update="stream"
-          class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
-        >
-          <tr :for={{row_id, row} <- @streams.spans} id={row_id} class="group hover:bg-zinc-50">
-            <Span.show span={row} />
-          </tr>
-        </tbody>
-      <% "Logs" -> %>
-        <tbody
-          id="logs-table-body"
-          phx-update="stream"
-          class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
-        >
-          <tr :for={{row_id, row} <- @streams.logs} id={row_id} class="group hover:bg-zinc-50">
-            <Log.show log={row} />
-          </tr>
-        </tbody>
-      <% _ -> %>
-    <% end %>
-  </table>
-</div>
-<div
-  class="relative z-10 hidden"
-  aria-labelledby="slide-over-title"
-  role="dialog"
-  aria-modal="true"
-  id="menu"
->
-  <!--
-    Background backdrop, show/hide based on slide-over state.
-
-    Entering: "ease-in-out duration-500"
-      From: "opacity-0"
-      To: "opacity-100"
-    Leaving: "ease-in-out duration-500"
-      From: "opacity-100"
-      To: "opacity-0"
-  -->
-  <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
-
-  <div class="fixed inset-0 overflow-hidden">
-    <div class="absolute inset-0 overflow-hidden">
-      <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
-        <!--
-          Slide-over panel, show/hide based on slide-over state.
-
-          Entering: "transform transition ease-in-out duration-500 sm:duration-700"
-            From: "translate-x-full"
-            To: "translate-x-0"
-          Leaving: "transform transition ease-in-out duration-500 sm:duration-700"
-            From: "translate-x-0"
-            To: "translate-x-full"
-        -->
-        <div class="pointer-events-auto relative w-screen max-w-md">
-          <!--
-            Close button, show/hide based on slide-over state.
-
-            Entering: "ease-in-out duration-500"
-              From: "opacity-0"
-              To: "opacity-100"
-            Leaving: "ease-in-out duration-500"
-              From: "opacity-100"
-              To: "opacity-0"
-          -->
-          <div class="absolute left-0 top-0 -ml-8 flex pr-2 pt-4 sm:-ml-10 sm:pr-4">
-            <button
-              type="button"
-              phx-click={toggle_navbar_menu()}
-              class="relative rounded-md text-gray-300 hover:text-white focus:outline-none focus:ring-2 focus:ring-white"
+<header class="px-4 sm:px-6 lg:px-8">
+  <div class="flex items-center justify-between border-b border-zinc-100 py-3 text-sm">
+    <div class="flex items-center gap-4">
+      <a href="/">
+        <img src={~p"/images/logo.svg"} width="36" />
+      </a>
+      <p class="bg-brand/5 text-brand rounded-full px-2 font-medium leading-6">
+        OTC Live Tail
+      </p>
+    </div>
+    <div class="flex items-center gap-4 font-semibold leading-6 text-zinc-900">
+      <a href="https://github.com/jaronoff97" class="hover:text-zinc-700">
+        @jaronoff97
+      </a>
+      <a href="https://github.com/jaronoff97/opamp-elixir" class="hover:text-zinc-700">
+        GitHub
+      </a>
+      <div>
+        <%= if Map.has_key?(@config, :id) do %>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="#29E41B"
+            class="w-6 h-6 align-middle inline-block"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+            />
+          </svg>
+          Agent Connected
+        <% else %>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="#E41B29"
+            class="w-6 h-6 align-middle inline-block"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+            />
+          </svg>
+          <button phx-click="request_config">
+            Disconnected
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="w-6 h-6 align-middle inline-block"
             >
-              <span class="absolute -inset-2.5"></span>
-              <span class="sr-only">Close panel</span>
-              <svg
-                class="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                aria-hidden="true"
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
+              />
+            </svg>
+          </button>
+        <% end %>
+      </div>
+      <button
+        type="button"
+        phx-click={toggle_navbar_menu()}
+        class="relative rounded-md hover:text-red focus:outline-none focus:ring-2 focus:ring-white"
+      >
+        <h3>Show Config</h3>
+      </button>
+    </div>
+  </div>
+</header>
+<main class="px-4 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-full">
+    <.flash_group flash={@flash} />
+    <%= if @remote_tap_started do %>
+      <.simple_form :let={_f} for={@form} phx-change="validate" as="form">
+        <div class="mt-4">
+          <.radio_fieldset
+            field={@form[:item]}
+            options={[
+              %{name: "Metrics", id: "metrics"},
+              %{name: "Spans", id: "spans"},
+              %{name: "Logs", id: "logs"}
+            ]}
+            checked_value={@form.params["item"]}
+          />
+        </div>
+      </.simple_form>
+      <Resource.show data={@resource} />
+      <div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0">
+        <table class="w-[40rem] mt-11 sm:w-full">
+          <thead class="text-sm text-left leading-6 text-zinc-500">
+            <tr>
+              <div :for={col_name <- @columns[@form.params["item"]]}>
+                <th class="p-0 pb-4 pr-6 font-normal"><%= col_name %></th>
+              </div>
+            </tr>
+          </thead>
+          <%= case @form.params["item"] do %>
+            <% "Metrics" -> %>
+              <tbody
+                id="metrics-table-body"
+                phx-update="stream"
+                class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
               >
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+                <tr
+                  :for={{row_id, row} <- @streams.metrics}
+                  id={row_id}
+                  class="group hover:bg-zinc-50"
+                >
+                  <Metric.show metric={row} />
+                </tr>
+              </tbody>
+            <% "Spans" -> %>
+              <tbody
+                id="spans-table-body"
+                phx-update="stream"
+                class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
+              >
+                <tr
+                  :for={{row_id, row} <- @streams.spans}
+                  id={row_id}
+                  class="group hover:bg-zinc-50"
+                >
+                  <Span.show span={row} />
+                </tr>
+              </tbody>
+            <% "Logs" -> %>
+              <tbody
+                id="logs-table-body"
+                phx-update="stream"
+                class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
+              >
+                <tr
+                  :for={{row_id, row} <- @streams.logs}
+                  id={row_id}
+                  class="group hover:bg-zinc-50"
+                >
+                  <Log.show log={row} />
+                </tr>
+              </tbody>
+            <% _ -> %>
+          <% end %>
+        </table>
+      </div>
+    <% else %>
+      <h1>Remote tap not started, connect to agent</h1>
+    <% end %>
+    <div
+      class="relative z-10 hidden"
+      aria-labelledby="slide-over-title"
+      role="dialog"
+      aria-modal="true"
+      id="menu"
+    >
+      <!--
+        Background backdrop, show/hide based on slide-over state.
 
-          <div class="flex h-full flex-col overflow-y-scroll bg-white py-6 shadow-xl">
-            <div class="px-4 sm:px-6">
-              <h2 class="text-base font-semibold leading-6 text-gray-900" id="slide-over-title">
-                Collector Configuration
-              </h2>
-              <button phx-click="request_config">Request Latest Config</button>
-            </div>
-            <div class="relative mt-6 flex-1 px-4 sm:px-6">
-              <%= if Map.has_key?(@config, :effective_config) && map_size(@config.effective_config.config_map.config_map) > 0 do %>
-                <textarea>
-                  <%=@config.effective_config.config_map.config_map[""].body %>
-                  </textarea>
-              <% end %>
+        Entering: "ease-in-out duration-500"
+          From: "opacity-0"
+          To: "opacity-100"
+        Leaving: "ease-in-out duration-500"
+          From: "opacity-100"
+          To: "opacity-0"
+      -->
+      <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+      <div class="fixed inset-0 overflow-hidden">
+        <div class="absolute inset-0 overflow-hidden">
+          <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
+            <!--
+              Slide-over panel, show/hide based on slide-over state.
+
+              Entering: "transform transition ease-in-out duration-500 sm:duration-700"
+                From: "translate-x-full"
+                To: "translate-x-0"
+              Leaving: "transform transition ease-in-out duration-500 sm:duration-700"
+                From: "translate-x-0"
+                To: "translate-x-full"
+            -->
+            <div class="pointer-events-auto relative w-screen max-w-md">
+              <!--
+                Close button, show/hide based on slide-over state.
+
+                Entering: "ease-in-out duration-500"
+                  From: "opacity-0"
+                  To: "opacity-100"
+                Leaving: "ease-in-out duration-500"
+                  From: "opacity-100"
+                  To: "opacity-0"
+              -->
+              <div class="absolute left-0 top-0 -ml-8 flex pr-2 pt-4 sm:-ml-10 sm:pr-4">
+                <button
+                  type="button"
+                  phx-click={toggle_navbar_menu()}
+                  class="relative rounded-md text-gray-300 hover:text-white focus:outline-none focus:ring-2 focus:ring-white"
+                >
+                  <span class="absolute -inset-2.5"></span>
+                  <span class="sr-only">Close panel</span>
+                  <svg
+                    class="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div class="flex h-full flex-col overflow-y-scroll bg-white py-6 shadow-xl">
+                <div class="px-4 sm:px-6">
+                  <h2
+                    class="text-base font-semibold leading-6 text-gray-900"
+                    id="slide-over-title"
+                  >
+                    Collector Configuration
+                  </h2>
+                </div>
+                <div class="relative mt-6 flex-1 px-4 sm:px-6">
+                  <%= if Map.has_key?(@config, :effective_config) && map_size(@config.effective_config.config_map.config_map) > 0 do %>
+                    <textarea>
+                      <%=@config.effective_config.config_map.config_map[""].body %>
+                      </textarea>
+                  <% end %>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
+</main>
