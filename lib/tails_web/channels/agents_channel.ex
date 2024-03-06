@@ -5,7 +5,7 @@ defmodule TailsWeb.AgentsChannel do
   @impl true
   def join("agents:" <> agent_id, payload, socket) do
     Tails.Agents.subscribe()
-    IO.puts("joinin")
+    # IO.puts("joinin")
 
     server_to_agent =
       create_or_update(agent_id, payload)
@@ -14,6 +14,22 @@ defmodule TailsWeb.AgentsChannel do
     {:ok, server_to_agent,
      socket
      |> assign(:agent_id, agent_id)}
+  end
+
+  @impl true
+  def handle_info({:request_config, _payload}, socket) do
+    server_to_agent = %Opamp.Proto.ServerToAgent{
+      instance_uid: socket.assigns.agent_id,
+      capabilities: server_capabilities(),
+      # :ServerToAgentFlags_ReportFullState
+      flags: 1
+    }
+
+    # IO.puts "------------ configmap pre-send"
+    # IO.inspect(payload.remote_config_status)
+    # IO.puts "------------ configmap pre-send"
+    push(socket, "", server_to_agent)
+    {:noreply, socket}
   end
 
   @impl true
@@ -55,7 +71,7 @@ defmodule TailsWeb.AgentsChannel do
       capabilities: server_capabilities()
     }
 
-    IO.puts("here")
+    # IO.puts("here")
     {:reply, server_to_agent, socket}
   end
 
@@ -91,6 +107,9 @@ defmodule TailsWeb.AgentsChannel do
       {:shutdown, :peer_closed} ->
         IO.puts("#{socket.assigns.agent_id} disconnected")
 
+      {:shutdown, :closed} ->
+        IO.puts("#{socket.assigns.agent_id} disconnected")
+
       other ->
         IO.inspect(other)
     end
@@ -105,7 +124,7 @@ defmodule TailsWeb.AgentsChannel do
         {:error, "not found"}
 
       agent ->
-        TailsWeb.Serializer.remove(agent_id)
+        TailsWeb.OpAMPSerializer.remove(agent_id)
         Tails.Agents.delete_agent(agent)
     end
   end

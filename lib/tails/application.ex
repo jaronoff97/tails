@@ -16,7 +16,8 @@ defmodule Tails.Application do
       TailsWeb.Endpoint,
       # Start a worker by calling: Tails.Worker.start_link(arg)
       # {Tails.Worker, arg}
-      {Tails.RemoteTapClient, []},
+      # RemoteTapClient is started dynamically now.
+      # {Tails.RemoteTapClient, []},
       TailsWeb.OpAMPSerializer
     ]
 

@@ -3,8 +3,8 @@ defmodule Opamp.Proto.AgentToServerFlags do
 
   use Protobuf, enum: true, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :AgentToServerFlags_Unspecified, 0
-  field :AgentToServerFlags_RequestInstanceUid, 1
+  field(:AgentToServerFlags_Unspecified, 0)
+  field(:AgentToServerFlags_RequestInstanceUid, 1)
 end
 
 defmodule Opamp.Proto.ServerToAgentFlags do
@@ -12,8 +12,8 @@ defmodule Opamp.Proto.ServerToAgentFlags do
 
   use Protobuf, enum: true, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :ServerToAgentFlags_Unspecified, 0
-  field :ServerToAgentFlags_ReportFullState, 1
+  field(:ServerToAgentFlags_Unspecified, 0)
+  field(:ServerToAgentFlags_ReportFullState, 1)
 end
 
 defmodule Opamp.Proto.ServerCapabilities do
@@ -21,14 +21,14 @@ defmodule Opamp.Proto.ServerCapabilities do
 
   use Protobuf, enum: true, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :ServerCapabilities_Unspecified, 0
-  field :ServerCapabilities_AcceptsStatus, 1
-  field :ServerCapabilities_OffersRemoteConfig, 2
-  field :ServerCapabilities_AcceptsEffectiveConfig, 4
-  field :ServerCapabilities_OffersPackages, 8
-  field :ServerCapabilities_AcceptsPackagesStatus, 16
-  field :ServerCapabilities_OffersConnectionSettings, 32
-  field :ServerCapabilities_AcceptsConnectionSettingsRequest, 64
+  field(:ServerCapabilities_Unspecified, 0)
+  field(:ServerCapabilities_AcceptsStatus, 1)
+  field(:ServerCapabilities_OffersRemoteConfig, 2)
+  field(:ServerCapabilities_AcceptsEffectiveConfig, 4)
+  field(:ServerCapabilities_OffersPackages, 8)
+  field(:ServerCapabilities_AcceptsPackagesStatus, 16)
+  field(:ServerCapabilities_OffersConnectionSettings, 32)
+  field(:ServerCapabilities_AcceptsConnectionSettingsRequest, 64)
 end
 
 defmodule Opamp.Proto.PackageType do
@@ -36,8 +36,8 @@ defmodule Opamp.Proto.PackageType do
 
   use Protobuf, enum: true, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :PackageType_TopLevel, 0
-  field :PackageType_Addon, 1
+  field(:PackageType_TopLevel, 0)
+  field(:PackageType_Addon, 1)
 end
 
 defmodule Opamp.Proto.ServerErrorResponseType do
@@ -45,9 +45,9 @@ defmodule Opamp.Proto.ServerErrorResponseType do
 
   use Protobuf, enum: true, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :ServerErrorResponseType_Unknown, 0
-  field :ServerErrorResponseType_BadRequest, 1
-  field :ServerErrorResponseType_Unavailable, 2
+  field(:ServerErrorResponseType_Unknown, 0)
+  field(:ServerErrorResponseType_BadRequest, 1)
+  field(:ServerErrorResponseType_Unavailable, 2)
 end
 
 defmodule Opamp.Proto.CommandType do
@@ -55,7 +55,7 @@ defmodule Opamp.Proto.CommandType do
 
   use Protobuf, enum: true, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :CommandType_Restart, 0
+  field(:CommandType_Restart, 0)
 end
 
 defmodule Opamp.Proto.AgentCapabilities do
@@ -63,20 +63,20 @@ defmodule Opamp.Proto.AgentCapabilities do
 
   use Protobuf, enum: true, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :AgentCapabilities_Unspecified, 0
-  field :AgentCapabilities_ReportsStatus, 1
-  field :AgentCapabilities_AcceptsRemoteConfig, 2
-  field :AgentCapabilities_ReportsEffectiveConfig, 4
-  field :AgentCapabilities_AcceptsPackages, 8
-  field :AgentCapabilities_ReportsPackageStatuses, 16
-  field :AgentCapabilities_ReportsOwnTraces, 32
-  field :AgentCapabilities_ReportsOwnMetrics, 64
-  field :AgentCapabilities_ReportsOwnLogs, 128
-  field :AgentCapabilities_AcceptsOpAMPConnectionSettings, 256
-  field :AgentCapabilities_AcceptsOtherConnectionSettings, 512
-  field :AgentCapabilities_AcceptsRestartCommand, 1024
-  field :AgentCapabilities_ReportsHealth, 2048
-  field :AgentCapabilities_ReportsRemoteConfig, 4096
+  field(:AgentCapabilities_Unspecified, 0)
+  field(:AgentCapabilities_ReportsStatus, 1)
+  field(:AgentCapabilities_AcceptsRemoteConfig, 2)
+  field(:AgentCapabilities_ReportsEffectiveConfig, 4)
+  field(:AgentCapabilities_AcceptsPackages, 8)
+  field(:AgentCapabilities_ReportsPackageStatuses, 16)
+  field(:AgentCapabilities_ReportsOwnTraces, 32)
+  field(:AgentCapabilities_ReportsOwnMetrics, 64)
+  field(:AgentCapabilities_ReportsOwnLogs, 128)
+  field(:AgentCapabilities_AcceptsOpAMPConnectionSettings, 256)
+  field(:AgentCapabilities_AcceptsOtherConnectionSettings, 512)
+  field(:AgentCapabilities_AcceptsRestartCommand, 1024)
+  field(:AgentCapabilities_ReportsHealth, 2048)
+  field(:AgentCapabilities_ReportsRemoteConfig, 4096)
 end
 
 defmodule Opamp.Proto.RemoteConfigStatuses do
@@ -84,10 +84,10 @@ defmodule Opamp.Proto.RemoteConfigStatuses do
 
   use Protobuf, enum: true, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :RemoteConfigStatuses_UNSET, 0
-  field :RemoteConfigStatuses_APPLIED, 1
-  field :RemoteConfigStatuses_APPLYING, 2
-  field :RemoteConfigStatuses_FAILED, 3
+  field(:RemoteConfigStatuses_UNSET, 0)
+  field(:RemoteConfigStatuses_APPLIED, 1)
+  field(:RemoteConfigStatuses_APPLYING, 2)
+  field(:RemoteConfigStatuses_FAILED, 3)
 end
 
 defmodule Opamp.Proto.PackageStatusEnum do
@@ -95,10 +95,10 @@ defmodule Opamp.Proto.PackageStatusEnum do
 
   use Protobuf, enum: true, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :PackageStatusEnum_Installed, 0
-  field :PackageStatusEnum_InstallPending, 1
-  field :PackageStatusEnum_Installing, 2
-  field :PackageStatusEnum_InstallFailed, 3
+  field(:PackageStatusEnum_Installed, 0)
+  field(:PackageStatusEnum_InstallPending, 1)
+  field(:PackageStatusEnum_Installing, 2)
+  field(:PackageStatusEnum_InstallFailed, 3)
 end
 
 defmodule Opamp.Proto.AgentToServer do
@@ -106,24 +106,26 @@ defmodule Opamp.Proto.AgentToServer do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :instance_uid, 1, type: :string, json_name: "instanceUid"
-  field :sequence_num, 2, type: :uint64, json_name: "sequenceNum"
-  field :agent_description, 3, type: Opamp.Proto.AgentDescription, json_name: "agentDescription"
-  field :capabilities, 4, type: :uint64
-  field :health, 5, type: Opamp.Proto.ComponentHealth
-  field :effective_config, 6, type: Opamp.Proto.EffectiveConfig, json_name: "effectiveConfig"
+  field(:instance_uid, 1, type: :string, json_name: "instanceUid")
+  field(:sequence_num, 2, type: :uint64, json_name: "sequenceNum")
+  field(:agent_description, 3, type: Opamp.Proto.AgentDescription, json_name: "agentDescription")
+  field(:capabilities, 4, type: :uint64)
+  field(:health, 5, type: Opamp.Proto.ComponentHealth)
+  field(:effective_config, 6, type: Opamp.Proto.EffectiveConfig, json_name: "effectiveConfig")
 
-  field :remote_config_status, 7,
+  field(:remote_config_status, 7,
     type: Opamp.Proto.RemoteConfigStatus,
     json_name: "remoteConfigStatus"
+  )
 
-  field :package_statuses, 8, type: Opamp.Proto.PackageStatuses, json_name: "packageStatuses"
-  field :agent_disconnect, 9, type: Opamp.Proto.AgentDisconnect, json_name: "agentDisconnect"
-  field :flags, 10, type: :uint64
+  field(:package_statuses, 8, type: Opamp.Proto.PackageStatuses, json_name: "packageStatuses")
+  field(:agent_disconnect, 9, type: Opamp.Proto.AgentDisconnect, json_name: "agentDisconnect")
+  field(:flags, 10, type: :uint64)
 
-  field :connection_settings_request, 11,
+  field(:connection_settings_request, 11,
     type: Opamp.Proto.ConnectionSettingsRequest,
     json_name: "connectionSettingsRequest"
+  )
 end
 
 defmodule Opamp.Proto.AgentDisconnect do
@@ -137,7 +139,7 @@ defmodule Opamp.Proto.ConnectionSettingsRequest do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :opamp, 1, type: Opamp.Proto.OpAMPConnectionSettingsRequest
+  field(:opamp, 1, type: Opamp.Proto.OpAMPConnectionSettingsRequest)
 end
 
 defmodule Opamp.Proto.OpAMPConnectionSettingsRequest do
@@ -145,9 +147,10 @@ defmodule Opamp.Proto.OpAMPConnectionSettingsRequest do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :certificate_request, 1,
+  field(:certificate_request, 1,
     type: Opamp.Proto.CertificateRequest,
     json_name: "certificateRequest"
+  )
 end
 
 defmodule Opamp.Proto.CertificateRequest do
@@ -155,7 +158,7 @@ defmodule Opamp.Proto.CertificateRequest do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :csr, 1, type: :bytes
+  field(:csr, 1, type: :bytes)
 end
 
 defmodule Opamp.Proto.ServerToAgent do
@@ -163,26 +166,29 @@ defmodule Opamp.Proto.ServerToAgent do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :instance_uid, 1, type: :string, json_name: "instanceUid"
-  field :error_response, 2, type: Opamp.Proto.ServerErrorResponse, json_name: "errorResponse"
-  field :remote_config, 3, type: Opamp.Proto.AgentRemoteConfig, json_name: "remoteConfig"
+  field(:instance_uid, 1, type: :string, json_name: "instanceUid")
+  field(:error_response, 2, type: Opamp.Proto.ServerErrorResponse, json_name: "errorResponse")
+  field(:remote_config, 3, type: Opamp.Proto.AgentRemoteConfig, json_name: "remoteConfig")
 
-  field :connection_settings, 4,
+  field(:connection_settings, 4,
     type: Opamp.Proto.ConnectionSettingsOffers,
     json_name: "connectionSettings"
+  )
 
-  field :packages_available, 5,
+  field(:packages_available, 5,
     type: Opamp.Proto.PackagesAvailable,
     json_name: "packagesAvailable"
+  )
 
-  field :flags, 6, type: :uint64
-  field :capabilities, 7, type: :uint64
+  field(:flags, 6, type: :uint64)
+  field(:capabilities, 7, type: :uint64)
 
-  field :agent_identification, 8,
+  field(:agent_identification, 8,
     type: Opamp.Proto.AgentIdentification,
     json_name: "agentIdentification"
+  )
 
-  field :command, 9, type: Opamp.Proto.ServerToAgentCommand
+  field(:command, 9, type: Opamp.Proto.ServerToAgentCommand)
 end
 
 defmodule Opamp.Proto.OpAMPConnectionSettings do
@@ -190,9 +196,9 @@ defmodule Opamp.Proto.OpAMPConnectionSettings do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :destination_endpoint, 1, type: :string, json_name: "destinationEndpoint"
-  field :headers, 2, type: Opamp.Proto.Headers
-  field :certificate, 3, type: Opamp.Proto.TLSCertificate
+  field(:destination_endpoint, 1, type: :string, json_name: "destinationEndpoint")
+  field(:headers, 2, type: Opamp.Proto.Headers)
+  field(:certificate, 3, type: Opamp.Proto.TLSCertificate)
 end
 
 defmodule Opamp.Proto.TelemetryConnectionSettings do
@@ -200,9 +206,9 @@ defmodule Opamp.Proto.TelemetryConnectionSettings do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :destination_endpoint, 1, type: :string, json_name: "destinationEndpoint"
-  field :headers, 2, type: Opamp.Proto.Headers
-  field :certificate, 3, type: Opamp.Proto.TLSCertificate
+  field(:destination_endpoint, 1, type: :string, json_name: "destinationEndpoint")
+  field(:headers, 2, type: Opamp.Proto.Headers)
+  field(:certificate, 3, type: Opamp.Proto.TLSCertificate)
 end
 
 defmodule Opamp.Proto.OtherConnectionSettings.OtherSettingsEntry do
@@ -210,8 +216,8 @@ defmodule Opamp.Proto.OtherConnectionSettings.OtherSettingsEntry do
 
   use Protobuf, map: true, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :key, 1, type: :string
-  field :value, 2, type: :string
+  field(:key, 1, type: :string)
+  field(:value, 2, type: :string)
 end
 
 defmodule Opamp.Proto.OtherConnectionSettings do
@@ -219,15 +225,16 @@ defmodule Opamp.Proto.OtherConnectionSettings do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :destination_endpoint, 1, type: :string, json_name: "destinationEndpoint"
-  field :headers, 2, type: Opamp.Proto.Headers
-  field :certificate, 3, type: Opamp.Proto.TLSCertificate
+  field(:destination_endpoint, 1, type: :string, json_name: "destinationEndpoint")
+  field(:headers, 2, type: Opamp.Proto.Headers)
+  field(:certificate, 3, type: Opamp.Proto.TLSCertificate)
 
-  field :other_settings, 4,
+  field(:other_settings, 4,
     repeated: true,
     type: Opamp.Proto.OtherConnectionSettings.OtherSettingsEntry,
     json_name: "otherSettings",
     map: true
+  )
 end
 
 defmodule Opamp.Proto.Headers do
@@ -235,7 +242,7 @@ defmodule Opamp.Proto.Headers do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :headers, 1, repeated: true, type: Opamp.Proto.Header
+  field(:headers, 1, repeated: true, type: Opamp.Proto.Header)
 end
 
 defmodule Opamp.Proto.Header do
@@ -243,8 +250,8 @@ defmodule Opamp.Proto.Header do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :key, 1, type: :string
-  field :value, 2, type: :string
+  field(:key, 1, type: :string)
+  field(:value, 2, type: :string)
 end
 
 defmodule Opamp.Proto.TLSCertificate do
@@ -252,9 +259,9 @@ defmodule Opamp.Proto.TLSCertificate do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :public_key, 1, type: :bytes, json_name: "publicKey"
-  field :private_key, 2, type: :bytes, json_name: "privateKey"
-  field :ca_public_key, 3, type: :bytes, json_name: "caPublicKey"
+  field(:public_key, 1, type: :bytes, json_name: "publicKey")
+  field(:private_key, 2, type: :bytes, json_name: "privateKey")
+  field(:ca_public_key, 3, type: :bytes, json_name: "caPublicKey")
 end
 
 defmodule Opamp.Proto.ConnectionSettingsOffers.OtherConnectionsEntry do
@@ -262,8 +269,8 @@ defmodule Opamp.Proto.ConnectionSettingsOffers.OtherConnectionsEntry do
 
   use Protobuf, map: true, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :key, 1, type: :string
-  field :value, 2, type: Opamp.Proto.OtherConnectionSettings
+  field(:key, 1, type: :string)
+  field(:value, 2, type: Opamp.Proto.OtherConnectionSettings)
 end
 
 defmodule Opamp.Proto.ConnectionSettingsOffers do
@@ -271,17 +278,18 @@ defmodule Opamp.Proto.ConnectionSettingsOffers do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :hash, 1, type: :bytes
-  field :opamp, 2, type: Opamp.Proto.OpAMPConnectionSettings
-  field :own_metrics, 3, type: Opamp.Proto.TelemetryConnectionSettings, json_name: "ownMetrics"
-  field :own_traces, 4, type: Opamp.Proto.TelemetryConnectionSettings, json_name: "ownTraces"
-  field :own_logs, 5, type: Opamp.Proto.TelemetryConnectionSettings, json_name: "ownLogs"
+  field(:hash, 1, type: :bytes)
+  field(:opamp, 2, type: Opamp.Proto.OpAMPConnectionSettings)
+  field(:own_metrics, 3, type: Opamp.Proto.TelemetryConnectionSettings, json_name: "ownMetrics")
+  field(:own_traces, 4, type: Opamp.Proto.TelemetryConnectionSettings, json_name: "ownTraces")
+  field(:own_logs, 5, type: Opamp.Proto.TelemetryConnectionSettings, json_name: "ownLogs")
 
-  field :other_connections, 6,
+  field(:other_connections, 6,
     repeated: true,
     type: Opamp.Proto.ConnectionSettingsOffers.OtherConnectionsEntry,
     json_name: "otherConnections",
     map: true
+  )
 end
 
 defmodule Opamp.Proto.PackagesAvailable.PackagesEntry do
@@ -289,8 +297,8 @@ defmodule Opamp.Proto.PackagesAvailable.PackagesEntry do
 
   use Protobuf, map: true, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :key, 1, type: :string
-  field :value, 2, type: Opamp.Proto.PackageAvailable
+  field(:key, 1, type: :string)
+  field(:value, 2, type: Opamp.Proto.PackageAvailable)
 end
 
 defmodule Opamp.Proto.PackagesAvailable do
@@ -298,8 +306,13 @@ defmodule Opamp.Proto.PackagesAvailable do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :packages, 1, repeated: true, type: Opamp.Proto.PackagesAvailable.PackagesEntry, map: true
-  field :all_packages_hash, 2, type: :bytes, json_name: "allPackagesHash"
+  field(:packages, 1,
+    repeated: true,
+    type: Opamp.Proto.PackagesAvailable.PackagesEntry,
+    map: true
+  )
+
+  field(:all_packages_hash, 2, type: :bytes, json_name: "allPackagesHash")
 end
 
 defmodule Opamp.Proto.PackageAvailable do
@@ -307,10 +320,10 @@ defmodule Opamp.Proto.PackageAvailable do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :type, 1, type: Opamp.Proto.PackageType, enum: true
-  field :version, 2, type: :string
-  field :file, 3, type: Opamp.Proto.DownloadableFile
-  field :hash, 4, type: :bytes
+  field(:type, 1, type: Opamp.Proto.PackageType, enum: true)
+  field(:version, 2, type: :string)
+  field(:file, 3, type: Opamp.Proto.DownloadableFile)
+  field(:hash, 4, type: :bytes)
 end
 
 defmodule Opamp.Proto.DownloadableFile do
@@ -318,9 +331,9 @@ defmodule Opamp.Proto.DownloadableFile do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :download_url, 1, type: :string, json_name: "downloadUrl"
-  field :content_hash, 2, type: :bytes, json_name: "contentHash"
-  field :signature, 3, type: :bytes
+  field(:download_url, 1, type: :string, json_name: "downloadUrl")
+  field(:content_hash, 2, type: :bytes, json_name: "contentHash")
+  field(:signature, 3, type: :bytes)
 end
 
 defmodule Opamp.Proto.ServerErrorResponse do
@@ -328,11 +341,11 @@ defmodule Opamp.Proto.ServerErrorResponse do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  oneof :Details, 0
+  oneof(:Details, 0)
 
-  field :type, 1, type: Opamp.Proto.ServerErrorResponseType, enum: true
-  field :error_message, 2, type: :string, json_name: "errorMessage"
-  field :retry_info, 3, type: Opamp.Proto.RetryInfo, json_name: "retryInfo", oneof: 0
+  field(:type, 1, type: Opamp.Proto.ServerErrorResponseType, enum: true)
+  field(:error_message, 2, type: :string, json_name: "errorMessage")
+  field(:retry_info, 3, type: Opamp.Proto.RetryInfo, json_name: "retryInfo", oneof: 0)
 end
 
 defmodule Opamp.Proto.RetryInfo do
@@ -340,7 +353,7 @@ defmodule Opamp.Proto.RetryInfo do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :retry_after_nanoseconds, 1, type: :uint64, json_name: "retryAfterNanoseconds"
+  field(:retry_after_nanoseconds, 1, type: :uint64, json_name: "retryAfterNanoseconds")
 end
 
 defmodule Opamp.Proto.ServerToAgentCommand do
@@ -348,7 +361,7 @@ defmodule Opamp.Proto.ServerToAgentCommand do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :type, 1, type: Opamp.Proto.CommandType, enum: true
+  field(:type, 1, type: Opamp.Proto.CommandType, enum: true)
 end
 
 defmodule Opamp.Proto.AgentDescription do
@@ -356,15 +369,17 @@ defmodule Opamp.Proto.AgentDescription do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :identifying_attributes, 1,
+  field(:identifying_attributes, 1,
     repeated: true,
     type: Opamp.Proto.KeyValue,
     json_name: "identifyingAttributes"
+  )
 
-  field :non_identifying_attributes, 2,
+  field(:non_identifying_attributes, 2,
     repeated: true,
     type: Opamp.Proto.KeyValue,
     json_name: "nonIdentifyingAttributes"
+  )
 end
 
 defmodule Opamp.Proto.ComponentHealth.ComponentHealthMapEntry do
@@ -372,8 +387,8 @@ defmodule Opamp.Proto.ComponentHealth.ComponentHealthMapEntry do
 
   use Protobuf, map: true, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :key, 1, type: :string
-  field :value, 2, type: Opamp.Proto.ComponentHealth
+  field(:key, 1, type: :string)
+  field(:value, 2, type: Opamp.Proto.ComponentHealth)
 end
 
 defmodule Opamp.Proto.ComponentHealth do
@@ -381,17 +396,18 @@ defmodule Opamp.Proto.ComponentHealth do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :healthy, 1, type: :bool
-  field :start_time_unix_nano, 2, type: :fixed64, json_name: "startTimeUnixNano"
-  field :last_error, 3, type: :string, json_name: "lastError"
-  field :status, 4, type: :string
-  field :status_time_unix_nano, 5, type: :fixed64, json_name: "statusTimeUnixNano"
+  field(:healthy, 1, type: :bool)
+  field(:start_time_unix_nano, 2, type: :fixed64, json_name: "startTimeUnixNano")
+  field(:last_error, 3, type: :string, json_name: "lastError")
+  field(:status, 4, type: :string)
+  field(:status_time_unix_nano, 5, type: :fixed64, json_name: "statusTimeUnixNano")
 
-  field :component_health_map, 6,
+  field(:component_health_map, 6,
     repeated: true,
     type: Opamp.Proto.ComponentHealth.ComponentHealthMapEntry,
     json_name: "componentHealthMap",
     map: true
+  )
 end
 
 defmodule Opamp.Proto.EffectiveConfig do
@@ -399,7 +415,7 @@ defmodule Opamp.Proto.EffectiveConfig do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :config_map, 1, type: Opamp.Proto.AgentConfigMap, json_name: "configMap"
+  field(:config_map, 1, type: Opamp.Proto.AgentConfigMap, json_name: "configMap")
 end
 
 defmodule Opamp.Proto.RemoteConfigStatus do
@@ -407,9 +423,9 @@ defmodule Opamp.Proto.RemoteConfigStatus do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :last_remote_config_hash, 1, type: :bytes, json_name: "lastRemoteConfigHash"
-  field :status, 2, type: Opamp.Proto.RemoteConfigStatuses, enum: true
-  field :error_message, 3, type: :string, json_name: "errorMessage"
+  field(:last_remote_config_hash, 1, type: :bytes, json_name: "lastRemoteConfigHash")
+  field(:status, 2, type: Opamp.Proto.RemoteConfigStatuses, enum: true)
+  field(:error_message, 3, type: :string, json_name: "errorMessage")
 end
 
 defmodule Opamp.Proto.PackageStatuses.PackagesEntry do
@@ -417,8 +433,8 @@ defmodule Opamp.Proto.PackageStatuses.PackagesEntry do
 
   use Protobuf, map: true, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :key, 1, type: :string
-  field :value, 2, type: Opamp.Proto.PackageStatus
+  field(:key, 1, type: :string)
+  field(:value, 2, type: Opamp.Proto.PackageStatus)
 end
 
 defmodule Opamp.Proto.PackageStatuses do
@@ -426,13 +442,14 @@ defmodule Opamp.Proto.PackageStatuses do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :packages, 1, repeated: true, type: Opamp.Proto.PackageStatuses.PackagesEntry, map: true
+  field(:packages, 1, repeated: true, type: Opamp.Proto.PackageStatuses.PackagesEntry, map: true)
 
-  field :server_provided_all_packages_hash, 2,
+  field(:server_provided_all_packages_hash, 2,
     type: :bytes,
     json_name: "serverProvidedAllPackagesHash"
+  )
 
-  field :error_message, 3, type: :string, json_name: "errorMessage"
+  field(:error_message, 3, type: :string, json_name: "errorMessage")
 end
 
 defmodule Opamp.Proto.PackageStatus do
@@ -440,13 +457,13 @@ defmodule Opamp.Proto.PackageStatus do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :name, 1, type: :string
-  field :agent_has_version, 2, type: :string, json_name: "agentHasVersion"
-  field :agent_has_hash, 3, type: :bytes, json_name: "agentHasHash"
-  field :server_offered_version, 4, type: :string, json_name: "serverOfferedVersion"
-  field :server_offered_hash, 5, type: :bytes, json_name: "serverOfferedHash"
-  field :status, 6, type: Opamp.Proto.PackageStatusEnum, enum: true
-  field :error_message, 7, type: :string, json_name: "errorMessage"
+  field(:name, 1, type: :string)
+  field(:agent_has_version, 2, type: :string, json_name: "agentHasVersion")
+  field(:agent_has_hash, 3, type: :bytes, json_name: "agentHasHash")
+  field(:server_offered_version, 4, type: :string, json_name: "serverOfferedVersion")
+  field(:server_offered_hash, 5, type: :bytes, json_name: "serverOfferedHash")
+  field(:status, 6, type: Opamp.Proto.PackageStatusEnum, enum: true)
+  field(:error_message, 7, type: :string, json_name: "errorMessage")
 end
 
 defmodule Opamp.Proto.AgentIdentification do
@@ -454,7 +471,7 @@ defmodule Opamp.Proto.AgentIdentification do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :new_instance_uid, 1, type: :string, json_name: "newInstanceUid"
+  field(:new_instance_uid, 1, type: :string, json_name: "newInstanceUid")
 end
 
 defmodule Opamp.Proto.AgentRemoteConfig do
@@ -462,8 +479,8 @@ defmodule Opamp.Proto.AgentRemoteConfig do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :config, 1, type: Opamp.Proto.AgentConfigMap
-  field :config_hash, 2, type: :bytes, json_name: "configHash"
+  field(:config, 1, type: Opamp.Proto.AgentConfigMap)
+  field(:config_hash, 2, type: :bytes, json_name: "configHash")
 end
 
 defmodule Opamp.Proto.AgentConfigMap.ConfigMapEntry do
@@ -471,8 +488,8 @@ defmodule Opamp.Proto.AgentConfigMap.ConfigMapEntry do
 
   use Protobuf, map: true, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :key, 1, type: :string
-  field :value, 2, type: Opamp.Proto.AgentConfigFile
+  field(:key, 1, type: :string)
+  field(:value, 2, type: Opamp.Proto.AgentConfigFile)
 end
 
 defmodule Opamp.Proto.AgentConfigMap do
@@ -480,11 +497,12 @@ defmodule Opamp.Proto.AgentConfigMap do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :config_map, 1,
+  field(:config_map, 1,
     repeated: true,
     type: Opamp.Proto.AgentConfigMap.ConfigMapEntry,
     json_name: "configMap",
     map: true
+  )
 end
 
 defmodule Opamp.Proto.AgentConfigFile do
@@ -492,6 +510,6 @@ defmodule Opamp.Proto.AgentConfigFile do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field :body, 1, type: :bytes
-  field :content_type, 2, type: :string, json_name: "contentType"
+  field(:body, 1, type: :bytes)
+  field(:content_type, 2, type: :string, json_name: "contentType")
 end

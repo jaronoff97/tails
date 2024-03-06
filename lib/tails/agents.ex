@@ -19,7 +19,10 @@ defmodule Tails.Agents do
     {:ok, agent}
   end
 
-  def get_agent(id), do: nil
+  def get_agent(_id), do: nil
+
+  def request_latest_config,
+    do: Phoenix.PubSub.broadcast(Tails.PubSub, "agents", {:request_config, %{}})
 
   @doc """
   Creates a agent.

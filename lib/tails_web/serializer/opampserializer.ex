@@ -21,18 +21,22 @@ defmodule TailsWeb.OpAMPSerializer do
   end
 
   def encode!(%Reply{} = reply) do
-    # IO.puts "--------------- reply"
-    # IO.inspect reply
-    # IO.inspect Agent.get(:connections, &MapSet.to_list(&1))
-    # IO.puts "--------------- reply"
-    {:socket_push, :binary, encode_data(reply.payload)}
+    # IO.puts("--------------- reply")
+    # IO.inspect(reply)
+    # IO.inspect(Agent.get(:connections, &MapSet.to_list(&1)))
+    # IO.puts("--------------- reply")
+
+    case reply.status do
+      :error -> {:socket_push, :binary, encode_data(get_error_message(reply.payload))}
+      _ -> {:socket_push, :binary, encode_data(reply.payload)}
+    end
   end
 
   def encode!(%Message{} = msg) do
-    # IO.puts "--------------- msg"
-    # IO.inspect msg
-    # IO.inspect Agent.get(:connections, &MapSet.to_list(&1))
-    # IO.puts "--------------- msg"
+    # IO.puts("--------------- msg")
+    # IO.inspect(msg)
+    # IO.inspect(Agent.get(:connections, &MapSet.to_list(&1)))
+    # IO.puts("--------------- msg")
     {:socket_push, :binary, encode_data(msg.payload)}
   end
 
@@ -46,6 +50,24 @@ defmodule TailsWeb.OpAMPSerializer do
 
   def encode_data(%Opamp.Proto.ServerToAgent{} = payload) do
     Opamp.Proto.ServerToAgent.encode(payload)
+  end
+
+  defp get_error_message(%{reason: "unmatched topic"}) do
+    %Opamp.Proto.ServerToAgent{
+      error_response: %Opamp.Proto.ServerErrorResponse{
+        type: :ServerErrorResponseType_Unavailable,
+        error_message: "Connection idled, reconnect requested"
+      }
+    }
+  end
+
+  defp get_error_message(%{reason: reason}) do
+    %Opamp.Proto.ServerToAgent{
+      error_response: %Opamp.Proto.ServerErrorResponse{
+        type: :ServerErrorResponseType_Unavailable,
+        error_message: reason
+      }
+    }
   end
 
   def decode!(raw_message, opts) do
@@ -72,11 +94,12 @@ defmodule TailsWeb.OpAMPSerializer do
          data::binary
        >>) do
     proto = Opamp.Proto.AgentToServer.decode(data)
-    # IO.puts "-----------------------"
-    # IO.puts "is a memember?"
-    # IO.inspect Agent.get(:connections, &MapSet.member?(&1, proto.instance_uid))
-    # IO.inspect Agent.get(:connections, &MapSet.to_list/1)
-    # IO.puts "-----------------------"
+    # IO.puts("-----------------------")
+    # IO.puts("is a memember?")
+    # IO.inspect(Agent.get(:connections, &MapSet.member?(&1, proto.instance_uid)))
+    # IO.inspect(Agent.get(:connections, &MapSet.to_list/1))
+    # IO.puts("-----------------------")
+
     case Agent.get(:connections, &MapSet.member?(&1, proto.instance_uid)) do
       false -> respond_join(proto)
       true -> respond_heartbeat(proto)

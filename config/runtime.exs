@@ -38,8 +38,11 @@ if config_env() == :prod do
 
   config :tails, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
+  config :tails, TailsWeb.UserSocket, check_origin: :conn
+
   config :tails, TailsWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],
+    check_origin: :conn,
     http: [
       # Enable IPv6 and bind on all interfaces.
       # Set it to  {0, 0, 0, 0, 0, 0, 0, 1} for local network only access.
