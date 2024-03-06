@@ -31,7 +31,7 @@
           class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
         >
           <tr :for={{row_id, row} <- @streams.metrics} id={row_id} class="group hover:bg-zinc-50">
-            <Metrics.show metrics={row} />
+            <Metric.show metric={row} />
           </tr>
         </tbody>
       <% "Spans" -> %>
@@ -41,7 +41,7 @@
           class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
         >
           <tr :for={{row_id, row} <- @streams.spans} id={row_id} class="group hover:bg-zinc-50">
-            <Spans.show span={row} />
+            <Span.show span={row} />
           </tr>
         </tbody>
       <% "Logs" -> %>
@@ -51,7 +51,7 @@
           class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
         >
           <tr :for={{row_id, row} <- @streams.logs} id={row_id} class="group hover:bg-zinc-50">
-            <Logs.show logs={row} />
+            <Log.show log={row} />
           </tr>
         </tbody>
       <% _ -> %>
@@ -127,6 +127,7 @@
               <h2 class="text-base font-semibold leading-6 text-gray-900" id="slide-over-title">
                 Collector Configuration
               </h2>
+              <button phx-click="request_config">Request Latest Config</button>
             </div>
             <div class="relative mt-6 flex-1 px-4 sm:px-6">
               <%= if Map.has_key?(@config, :effective_config) && map_size(@config.effective_config.config_map.config_map) > 0 do %>

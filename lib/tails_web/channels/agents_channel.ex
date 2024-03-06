@@ -17,6 +17,22 @@ defmodule TailsWeb.AgentsChannel do
   end
 
   @impl true
+  def handle_info({:request_config, _payload}, socket) do
+    server_to_agent = %Opamp.Proto.ServerToAgent{
+      instance_uid: socket.assigns.agent_id,
+      capabilities: server_capabilities(),
+      # :ServerToAgentFlags_ReportFullState
+      flags: 1
+    }
+
+    # IO.puts "------------ configmap pre-send"
+    # IO.inspect(payload.remote_config_status)
+    # IO.puts "------------ configmap pre-send"
+    push(socket, "", server_to_agent)
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_info({:agent_created, _payload}, socket) do
     {:noreply, socket}
   end

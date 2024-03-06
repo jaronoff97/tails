@@ -1,14 +1,14 @@
-defmodule TailsWeb.Otel.Metrics do
+defmodule TailsWeb.Otel.Metric do
   use Phoenix.Component
 
   def show(assigns) do
     ~H"""
-    <div :for={s <- get_metrics(@metrics.data["resourceMetrics"])}>
+    <div>
       <tr>
-        <td><%= get_data(s) |> get_latest %></td>
-        <td><%= s["name"] %></td>
-        <td><%= s["description"] %></td>
-        <td><%= get_data(s) |> get_attributes |> Jason.encode!() %></td>
+        <td><%= @metric |> get_data |> get_latest %></td>
+        <td><%= @metric["name"] %></td>
+        <td><%= @metric["description"] %></td>
+        <td><%= @metric |> get_data |> get_attributes |> Jason.encode!() %></td>
       </tr>
     </div>
     """
@@ -22,8 +22,6 @@ defmodule TailsWeb.Otel.Metrics do
   defp get_attributes(nil), do: []
 
   defp get_attributes(data_points) do
-    IO.inspect(data_points)
-
     data_points
     |> Enum.reduce([], fn e, acc ->
       attrs = Map.get(e, "attributes", %{})
@@ -48,16 +46,6 @@ defmodule TailsWeb.Otel.Metrics do
         :gt -> acc
         :eq -> acc
       end
-    end)
-  end
-
-  def get_metrics(resourceMetrics) do
-    resourceMetrics
-    |> Enum.reduce([], fn e, acc ->
-      acc ++ e["scopeMetrics"]
-    end)
-    |> Enum.reduce([], fn e, acc ->
-      acc ++ e["metrics"]
     end)
   end
 end

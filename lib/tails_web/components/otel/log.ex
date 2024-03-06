@@ -1,15 +1,15 @@
-defmodule TailsWeb.Otel.Logs do
+defmodule TailsWeb.Otel.Log do
   use Phoenix.Component
 
   def show(assigns) do
     ~H"""
-    <div :for={s <- get_logs(@logs.data["resourceLogs"])}>
+    <div>
       <tr>
-        <td><%= s["timeUnixNano"] %></td>
-        <td><%= s["severityText"] %></td>
-        <td><%= s["spanId"] %></td>
-        <td><%= s["body"] |> Jason.encode!() %></td>
-        <td><%= s["attributes"] |> Jason.encode!() %></td>
+        <td><%= @log["timeUnixNano"] %></td>
+        <td><%= @log["severityText"] %></td>
+        <td><%= @log["spanId"] %></td>
+        <td><%= @log["body"] |> Jason.encode!() %></td>
+        <td><%= @log["attributes"] |> Jason.encode!() %></td>
       </tr>
     </div>
     """
@@ -44,16 +44,6 @@ defmodule TailsWeb.Otel.Logs do
         :gt -> acc
         :eq -> acc
       end
-    end)
-  end
-
-  def get_logs(resourceLogs) do
-    resourceLogs
-    |> Enum.reduce([], fn e, acc ->
-      acc ++ e["scopeLogs"]
-    end)
-    |> Enum.reduce([], fn e, acc ->
-      acc ++ e["logRecords"]
     end)
   end
 end
