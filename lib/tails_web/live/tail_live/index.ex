@@ -6,7 +6,7 @@ defmodule TailsWeb.TailLive.Index do
 
   @columns %{
     "Metrics" => [
-      "Unix time",
+      "UTC Time",
       "Name",
       "Description",
       "Attributes"
@@ -109,7 +109,6 @@ defmodule TailsWeb.TailLive.Index do
 
   @impl true
   def handle_info({:request_config, _message}, socket) do
-    {_ok, socket} = start_remote_tap(socket)
     {:noreply, socket}
   end
 
