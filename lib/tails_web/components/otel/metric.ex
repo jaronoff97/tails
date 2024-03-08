@@ -29,6 +29,11 @@ defmodule TailsWeb.Otel.Metric do
     end)
   end
 
+  defp get_latest(nil) do
+    {:ok, epoch} = Time.new(0, 0, 0)
+    epoch
+  end
+
   defp get_latest(data_points) do
     {:ok, epoch} = Time.new(0, 0, 0)
 

@@ -57,6 +57,17 @@ defmodule TailsWeb.TailLive.Index do
   end
 
   @impl true
+  def handle_event("toggle_remote_tap", _value, socket) do
+    case start_remote_tap(socket) do
+      {:ok, socket} ->
+        {:noreply, socket}
+
+      {:error, socket} ->
+        {:noreply, socket}
+    end
+  end
+
+  @impl true
   def handle_event("request_config", _value, socket) do
     request_new_config(socket)
     {:noreply, socket}
