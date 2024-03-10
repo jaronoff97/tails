@@ -3,6 +3,7 @@ defmodule TailsWeb.TailLive.Index do
 
   alias Tails.{Telemetry, Agents}
   alias TailsWeb.Otel.{Resource, Span, Metric, Log}
+  @stream_limit 1000
 
   @columns %{
     "Metrics" => [
@@ -38,13 +39,14 @@ defmodule TailsWeb.TailLive.Index do
 
     {:ok,
      socket
-     |> stream(:spans, [], at: -1, limit: -10)
-     |> stream(:metrics, [], at: -1, limit: -10)
-     |> stream(:logs, [], at: -1, limit: -10)
+     |> stream(:spans, [], at: -1, limit: -@stream_limit)
+     |> stream(:metrics, [], at: -1, limit: -@stream_limit)
+     |> stream(:logs, [], at: -1, limit: -@stream_limit)
      |> assign(:config, %{})
      |> assign(:resource, %{"attributes" => []})
      |> assign(:columns, @columns)
      |> assign(:remote_tap_started, false)
+     |> assign(:should_stream, true)
      |> assign(:form, to_form(%{"item" => "Spans"}))}
   end
 
@@ -54,6 +56,13 @@ defmodule TailsWeb.TailLive.Index do
      socket
      |> assign(:resource, %{"attributes" => []})
      |> assign(form: to_form(%{"item" => params["item"]}))}
+  end
+
+  @impl true
+  def handle_event("toggle_stream", _value, socket) do
+    {:noreply,
+     socket
+     |> assign(:should_stream, !socket.assigns.should_stream)}
   end
 
   @impl true
@@ -146,8 +155,12 @@ defmodule TailsWeb.TailLive.Index do
   end
 
   def bulk_insert_records(socket, stream_name, message) do
-    socket
-    |> stream(stream_name, get_records(stream_name, message))
+    if socket.assigns.should_stream do
+      socket
+      |> stream(stream_name, get_records(stream_name, message), at: -1, limit: -@stream_limit)
+    else
+      socket
+    end
   end
 
   def get_records(stream_name, message) do
