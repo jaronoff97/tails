@@ -56,7 +56,7 @@ defmodule TailsWeb.TailLive.Index do
     {:noreply,
      socket
      |> assign(:active_stream, String.to_existing_atom(String.downcase(params["value"])))
-     |> stream(:data, [], at: -1, limit: -@stream_limit, reset: true)}
+     |> stream(:data, [], reset: true)}
   end
 
   @impl true
@@ -165,6 +165,8 @@ defmodule TailsWeb.TailLive.Index do
 
   def bulk_insert_records(socket, data_type, message) do
     if socket.assigns.should_stream do
+      IO.inspect(get_records(data_type, message))
+
       socket
       |> stream(:data, get_records(data_type, message), at: -1, limit: -@stream_limit)
     else
@@ -173,9 +175,25 @@ defmodule TailsWeb.TailLive.Index do
   end
 
   def get_records(stream_name, message) do
-    message.data["resource#{String.capitalize(Atom.to_string(stream_name))}"]
-    |> Enum.map(fn item -> Map.put_new(item, :id, UUID.uuid4()) end)
+    message.data[resource_accessor(stream_name)]
+    |> Enum.map(fn resourceRecords ->
+      Map.update(resourceRecords, scope_accessor(stream_name), [], fn scopeRecords ->
+        Enum.map(scopeRecords, fn scopeRecord ->
+          Map.update(scopeRecord, record_accessor(stream_name), [], fn records ->
+            Enum.map(records, fn item -> Map.put_new(item, :id, UUID.uuid4()) end)
+          end)
+        end)
+      end)
+    end)
+    |> Enum.map(fn resourceRecords -> Map.put_new(resourceRecords, :id, UUID.uuid4()) end)
   end
+
+  defp resource_accessor(stream_name),
+    do: "resource#{String.capitalize(Atom.to_string(stream_name))}"
+
+  defp scope_accessor(stream_name), do: "scope#{String.capitalize(Atom.to_string(stream_name))}"
+  defp record_accessor(:logs), do: "logRecords"
+  defp record_accessor(stream_name), do: Atom.to_string(stream_name)
 
   defp apply_action(socket, :index, _params) do
     socket

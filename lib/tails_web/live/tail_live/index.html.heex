@@ -149,9 +149,12 @@
             phx-update="stream"
             class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
           >
-            <div :for={{row_id, row} <- @streams.data} class="group hover:bg-zinc-50">
-              <ResourceData.show resource_data={row} stream_name={@active_stream} id={row_id} />
-            </div>
+            <ResourceData.show
+              :for={{row_id, row} <- @streams.data}
+              resource_data={row}
+              stream_name={@active_stream}
+              id={row_id}
+            />
           </tbody>
         </table>
       </div>
