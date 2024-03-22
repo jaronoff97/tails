@@ -2,17 +2,18 @@ defmodule TailsWeb.TailLive.Index do
   use TailsWeb, :live_view
 
   alias Tails.{Telemetry, Agents}
-  alias TailsWeb.Otel.{Resource, Span, Metric, Log}
+  alias TailsWeb.Otel.{Resource, ResourceData}
   @stream_limit 1000
 
   @columns %{
-    "Metrics" => [
+    :metrics => [
       "UTC Time",
       "Name",
       "Description",
-      "Attributes"
+      "Attributes",
+      "Resource"
     ],
-    "Spans" => [
+    :spans => [
       "TraceId",
       "ParentSpanId",
       "SpanId",
@@ -21,14 +22,16 @@ defmodule TailsWeb.TailLive.Index do
       "Name",
       "Kind",
       "Status",
-      "Attributes"
+      "Attributes",
+      "Resource"
     ],
-    "Logs" => [
+    :logs => [
       "timeUnixNano",
       "severityText",
       "spanId",
       "body",
-      "attributes"
+      "Attributes",
+      "Resource"
     ]
   }
 
@@ -39,23 +42,21 @@ defmodule TailsWeb.TailLive.Index do
 
     {:ok,
      socket
-     |> stream(:spans, [], at: -1, limit: -@stream_limit)
-     |> stream(:metrics, [], at: -1, limit: -@stream_limit)
-     |> stream(:logs, [], at: -1, limit: -@stream_limit)
+     |> stream(:data, [], at: -1, limit: -@stream_limit)
      |> assign(:config, %{})
-     |> assign(:resource, %{"attributes" => []})
      |> assign(:columns, @columns)
      |> assign(:remote_tap_started, false)
      |> assign(:should_stream, true)
-     |> assign(:form, to_form(%{"item" => "Spans"}))}
+     |> assign(:stream_options, get_options())
+     |> assign(:active_stream, :spans)}
   end
 
   @impl true
-  def handle_event("validate", params, socket) do
+  def handle_event("change_stream", params, socket) do
     {:noreply,
      socket
-     |> assign(:resource, %{"attributes" => []})
-     |> assign(form: to_form(%{"item" => params["item"]}))}
+     |> assign(:active_stream, String.to_existing_atom(String.downcase(params["value"])))
+     |> stream(:data, [], at: -1, limit: -@stream_limit, reset: true)}
   end
 
   @impl true
@@ -107,8 +108,6 @@ defmodule TailsWeb.TailLive.Index do
 
   @impl true
   def handle_info({:agent_updated, message}, socket) do
-    # IO.inspect(message)
-
     {:noreply,
      socket
      |> assign(:config, message)}
@@ -133,11 +132,21 @@ defmodule TailsWeb.TailLive.Index do
   end
 
   @impl true
-  def handle_info({stream_name, message}, socket) do
-    {:noreply,
-     socket
-     |> bulk_insert_records(stream_name, message)
-     |> get_resource(stream_name, message)}
+  def handle_info({data_type, message}, socket) do
+    if data_type != socket.assigns.active_stream do
+      {:noreply, socket}
+    else
+      {:noreply,
+       socket
+       |> bulk_insert_records(data_type, message)}
+    end
+  end
+
+  def get_options() do
+    [:metrics, :spans, :logs]
+    |> Enum.map(fn a ->
+      %{stream: a, id: Atom.to_string(a), name: String.capitalize(Atom.to_string(a))}
+    end)
   end
 
   defp start_remote_tap(socket) when socket.assigns.remote_tap_started, do: {:ok, socket}
@@ -154,10 +163,10 @@ defmodule TailsWeb.TailLive.Index do
     end
   end
 
-  def bulk_insert_records(socket, stream_name, message) do
+  def bulk_insert_records(socket, data_type, message) do
     if socket.assigns.should_stream do
       socket
-      |> stream(stream_name, get_records(stream_name, message), at: -1, limit: -@stream_limit)
+      |> stream(:data, get_records(data_type, message), at: -1, limit: -@stream_limit)
     else
       socket
     end
@@ -165,31 +174,7 @@ defmodule TailsWeb.TailLive.Index do
 
   def get_records(stream_name, message) do
     message.data["resource#{String.capitalize(Atom.to_string(stream_name))}"]
-    |> Enum.reduce([], fn e, acc ->
-      acc ++ e["scope#{String.capitalize(Atom.to_string(stream_name))}"]
-    end)
-    |> Enum.reduce([], fn e, acc ->
-      acc ++ e[record_accessor(stream_name)]
-    end)
     |> Enum.map(fn item -> Map.put_new(item, :id, UUID.uuid4()) end)
-  end
-
-  defp record_accessor(:logs), do: "logRecords"
-  defp record_accessor(stream_name), do: Atom.to_string(stream_name)
-
-  defp get_resource(socket, stream_name, message) do
-    if String.downcase(socket.assigns.form.params["item"]) == Atom.to_string(stream_name) do
-      new_resource =
-        message.data["resource#{String.capitalize(Atom.to_string(stream_name))}"]
-        |> Enum.reduce(%{"attributes" => []}, fn e, acc ->
-          Map.merge(acc, e["resource"])
-        end)
-
-      socket
-      |> assign(:resource, new_resource)
-    else
-      socket
-    end
   end
 
   defp apply_action(socket, :index, _params) do

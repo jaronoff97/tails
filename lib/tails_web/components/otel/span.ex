@@ -3,19 +3,14 @@ defmodule TailsWeb.Otel.Span do
 
   def show(assigns) do
     ~H"""
-    <div>
-      <tr>
-        <td><%= @span["traceId"] %></td>
-        <td><%= @span["parentSpanId"] %></td>
-        <td><%= @span["spanId"] %></td>
-        <td><%= @span["startTimeUnixNano"] %></td>
-        <td><%= @span["endTimeUnixNano"] %></td>
-        <td><%= @span["name"] %></td>
-        <td><%= @span["kind"] %></td>
-        <td><%= Jason.encode!(@span["status"]) %></td>
-        <td><%= Jason.encode!(@span["attributes"]) %></td>
-      </tr>
-    </div>
+    <td><%= @span["traceId"] %></td>
+    <td><%= @span["parentSpanId"] %></td>
+    <td><%= @span["spanId"] %></td>
+    <td><%= @span["startTimeUnixNano"] %></td>
+    <td><%= @span["endTimeUnixNano"] %></td>
+    <td><%= @span["name"] %></td>
+    <td><%= @span["kind"] %></td>
+    <td><%= Jason.encode!(@span["status"]) %></td>
     """
   end
 end

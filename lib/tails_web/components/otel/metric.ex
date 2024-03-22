@@ -3,14 +3,9 @@ defmodule TailsWeb.Otel.Metric do
 
   def show(assigns) do
     ~H"""
-    <div>
-      <tr>
-        <td><%= @metric |> get_data |> get_latest %></td>
-        <td><%= @metric["name"] %></td>
-        <td><%= @metric["description"] %></td>
-        <td><%= @metric |> get_data |> get_attributes |> Jason.encode!() %></td>
-      </tr>
-    </div>
+    <td><%= @metric |> get_data |> get_latest %></td>
+    <td><%= @metric["name"] %></td>
+    <td><%= @metric["description"] %></td>
     """
   end
 
