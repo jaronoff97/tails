@@ -1,40 +1,38 @@
 defmodule TailsWeb.Otel.ResourceData do
   alias TailsWeb.Otel.{Metric, Span, Log}
   use Phoenix.Component
+  alias Tails.Telemetry
 
   def show(assigns) do
     ~H"""
-    <tr
-      :for={{data, index} <- Enum.with_index(get_scope_data(@resource_data, @stream_name))}
-      id={"#{@id}-#{index}"}
-    >
-      <%= case @stream_name do %>
-        <% :metrics -> %>
-          <Metric.show metric={data} />
-        <% :spans -> %>
-          <Span.show span={data} />
-        <% :logs -> %>
-          <Log.show log={data} />
-        <% _ -> %>
-      <% end %>
-      <td>Show attributes</td>
-      <%= if index == 0 do %>
-        <td rowspan={length(get_scope_data(@resource_data, @stream_name))}>
-          Show Resource Attributes
-        </td>
-      <% end %>
-    </tr>
+    <%= case @stream_name do %>
+      <% :metrics -> %>
+        <Metric.show metric={@data} />
+      <% :spans -> %>
+        <Span.show span={@data} />
+      <% :logs -> %>
+        <Log.show log={@data} />
+      <% _ -> %>
+    <% end %>
+    <td :for={col_name <- @custom_columns}>
+      <%= get_attribute_value(@data, col_name) %>
+    </td>
+    <td>
+      <button
+        class="py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-full border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+        phx-click={@attribute_click && @attribute_click.(@data)}
+      >
+        Show attributes
+      </button>
+    </td>
+    <td>Resource attributes</td>
     """
   end
 
-  defp get_scope_data(resource_data, stream_name) do
-    resource_data[scope_accessor(stream_name)]
-    |> Enum.reduce([], fn e, acc ->
-      acc ++ e[record_accessor(stream_name)]
-    end)
+  def get_attribute_value(data, key) do
+    data["attributes"]
+    |> Enum.find(%{}, fn attribute -> attribute["key"] == key end)
+    |> Map.get("value")
+    |> Telemetry.string_from_value()
   end
-
-  defp scope_accessor(stream_name), do: "scope#{String.capitalize(Atom.to_string(stream_name))}"
-  defp record_accessor(:logs), do: "logRecords"
-  defp record_accessor(stream_name), do: Atom.to_string(stream_name)
 end

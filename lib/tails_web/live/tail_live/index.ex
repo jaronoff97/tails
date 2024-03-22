@@ -2,16 +2,14 @@ defmodule TailsWeb.TailLive.Index do
   use TailsWeb, :live_view
 
   alias Tails.{Telemetry, Agents}
-  alias TailsWeb.Otel.{Resource, ResourceData}
+  alias TailsWeb.Otel.{Attributes, ResourceData}
   @stream_limit 1000
 
   @columns %{
     :metrics => [
       "UTC Time",
       "Name",
-      "Description",
-      "Attributes",
-      "Resource"
+      "Description"
     ],
     :spans => [
       "TraceId",
@@ -21,17 +19,13 @@ defmodule TailsWeb.TailLive.Index do
       "EndTimeUnixNano",
       "Name",
       "Kind",
-      "Status",
-      "Attributes",
-      "Resource"
+      "Status"
     ],
     :logs => [
       "timeUnixNano",
       "severityText",
       "spanId",
-      "body",
-      "Attributes",
-      "Resource"
+      "body"
     ]
   }
 
@@ -43,8 +37,11 @@ defmodule TailsWeb.TailLive.Index do
     {:ok,
      socket
      |> stream(:data, [], at: -1, limit: -@stream_limit)
+     |> assign(:modal_attributes, %{})
      |> assign(:config, %{})
      |> assign(:columns, @columns)
+     |> assign(:custom_columns, MapSet.new([]))
+     |> assign(:filters, %{})
      |> assign(:remote_tap_started, false)
      |> assign(:should_stream, true)
      |> assign(:stream_options, get_options())
@@ -81,6 +78,48 @@ defmodule TailsWeb.TailLive.Index do
   def handle_event("request_config", _value, socket) do
     request_new_config(socket)
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("attribute_clicked", value, socket) do
+    IO.inspect(value)
+
+    {:noreply,
+     socket
+     |> assign(:modal_attributes, value["attributes"])
+     |> push_event("js-exec", %{to: "#attribute-modal", attr: "data-show"})}
+  end
+
+  @impl true
+  def handle_event("remove_column", %{"column" => column}, socket) do
+    {:noreply,
+     socket
+     |> put_flash(:error, "column removed, data reset")
+     |> assign(:custom_columns, MapSet.delete(socket.assigns.custom_columns, column))
+     |> stream(:data, [], reset: true)}
+  end
+
+  @impl true
+  def handle_event("attribute_filter", %{"action" => action, "key" => key, "val" => val}, socket) do
+    IO.inspect(action)
+    IO.inspect(key)
+    IO.inspect(val)
+    #     phx-value-action="column"
+    # phx-value-action="include"
+    # phx-value-action="include"
+    # phx-value-action="filter"
+    # phx-value-action="filter"
+    case action do
+      "column" ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "column added, data reset")
+         |> assign(:custom_columns, MapSet.put(socket.assigns.custom_columns, key))
+         |> stream(:data, [], reset: true)}
+
+      "_" ->
+        {:noreply, socket}
+    end
   end
 
   def toggle_navbar_menu(js \\ %JS{}) do
@@ -165,8 +204,6 @@ defmodule TailsWeb.TailLive.Index do
 
   def bulk_insert_records(socket, data_type, message) do
     if socket.assigns.should_stream do
-      IO.inspect(get_records(data_type, message))
-
       socket
       |> stream(:data, get_records(data_type, message), at: -1, limit: -@stream_limit)
     else
@@ -176,16 +213,13 @@ defmodule TailsWeb.TailLive.Index do
 
   def get_records(stream_name, message) do
     message.data[resource_accessor(stream_name)]
-    |> Enum.map(fn resourceRecords ->
-      Map.update(resourceRecords, scope_accessor(stream_name), [], fn scopeRecords ->
-        Enum.map(scopeRecords, fn scopeRecord ->
-          Map.update(scopeRecord, record_accessor(stream_name), [], fn records ->
-            Enum.map(records, fn item -> Map.put_new(item, :id, UUID.uuid4()) end)
-          end)
-        end)
-      end)
+    |> Enum.reduce([], fn e, acc ->
+      acc ++ e[scope_accessor(stream_name)]
     end)
-    |> Enum.map(fn resourceRecords -> Map.put_new(resourceRecords, :id, UUID.uuid4()) end)
+    |> Enum.reduce([], fn e, acc ->
+      acc ++ e[record_accessor(stream_name)]
+    end)
+    |> Enum.map(fn item -> Map.put_new(item, :id, UUID.uuid4()) end)
   end
 
   defp resource_accessor(stream_name),

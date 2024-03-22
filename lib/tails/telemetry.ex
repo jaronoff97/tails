@@ -22,4 +22,13 @@ defmodule Tails.Telemetry do
   def message_event(%{"resourceSpans" => _data}), do: :spans
   def message_event(%{"resourceMetrics" => _data}), do: :metrics
   def message_event(%{"resourceLogs" => _data}), do: :logs
+
+  def string_from_value(%{"stringValue" => val}), do: val
+  def string_from_value(%{"boolValue" => val}), do: to_string(val)
+  def string_from_value(%{"intValue" => val}), do: to_string(val)
+  def string_from_value(%{"doubleValue" => val}), do: to_string(val)
+  def string_from_value(%{"bytesValue" => val}), do: to_string(val)
+  def string_from_value(%{"arrayValue" => val}), do: Jason.encode!(val)
+  def string_from_value(%{"kvlistValue" => val}), do: Jason.encode!(val)
+  def string_from_value(_other), do: ""
 end
