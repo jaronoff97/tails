@@ -35,8 +35,8 @@ defmodule Tails.MixProject do
       {:phoenix, "~> 1.7.10"},
       {:phoenix_html, "~> 3.3"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:phoenix_live_view, "~> 0.20.12"},
-      {:floki, ">= 0.30.0", only: :test},
+      {:phoenix_live_view, "~> 0.20.14"},
+      {:floki, ">= 0.36.0", only: :test},
       {:phoenix_live_dashboard, "~> 0.8.2"},
       {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.2.0", runtime: Mix.env() == :dev},
@@ -48,7 +48,7 @@ defmodule Tails.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:protobuf, "~> 0.10.0"},
-      {:plug_cowboy, "~> 2.5"},
+      {:bandit, "~> 1.3"},
       {:websockex, "~> 0.4.3"},
       {:uuid, "~> 1.1"}
     ]

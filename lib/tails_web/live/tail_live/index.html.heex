@@ -7,27 +7,62 @@
       <p class="bg-brand/5 text-brand rounded-full px-2 font-medium leading-6">
         OTC Live Tail
       </p>
-    </div>
-    <div class="flex items-center gap-4 font-semibold leading-6 text-zinc-900">
       <a href="https://github.com/jaronoff97" class="hover:text-zinc-700">
         @jaronoff97
       </a>
-      <a href="https://github.com/jaronoff97/opamp-elixir" class="hover:text-zinc-700">
+      <a href="https://github.com/jaronoff97/tails" class="hover:text-zinc-700">
         GitHub
       </a>
+    </div>
+    <div class="flex items-center gap-4 font-semibold leading-6 text-zinc-900">
       <label class="inline-flex items-center me-5 cursor-pointer">
-        <input
-          type="checkbox"
-          value=""
-          class="sr-only peer"
-          phx-click="toggle_stream"
-          checked={@should_stream}
-        />
-        <div class="relative w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600">
-        </div>
-        <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
-          Streaming
-        </span>
+        <%= if @should_stream do %>
+          <button phx-click="toggle_stream">
+            <svg
+              class="w-[20px] h-[20px] text-gray-800 stroke-black"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 9v6m4-6v6m7-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+              />
+            </svg>
+          </button>
+          <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+            Streaming
+          </span>
+        <% else %>
+          <button phx-click="toggle_stream">
+            <svg
+              class="w-[20px] h-[20px] text-gray-800  stroke-black"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8 18V6l8 6-8 6Z"
+              />
+            </svg>
+          </button>
+          <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+            Paused
+          </span>
+        <% end %>
       </label>
       <label class="inline-flex items-center me-5 cursor-pointer">
         <input
@@ -76,7 +111,7 @@
             />
           </svg>
           <button phx-click="request_config">
-            Disconnected
+            Connect via OpAMP
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -94,94 +129,196 @@
           </button>
         <% end %>
       </div>
-      <button
-        type="button"
-        phx-click={toggle_navbar_menu()}
-        disabled={!Map.has_key?(@config, :effective_config)}
-        class="relative rounded-md hover:text-red focus:outline-none focus:ring-2 focus:ring-white"
-      >
-        <h3>Show Config</h3>
-      </button>
+      <%= if Map.has_key?(@config, :id) do %>
+        <button
+          type="button"
+          phx-click={"toggle_navbar_menu"}
+          disabled={!Map.has_key?(@config, :effective_config)}
+          class="relative rounded-md hover:text-red focus:outline-none focus:ring-2 focus:ring-white"
+        >
+          <h3>Show Config</h3>
+        </button>
+      <% end %>
     </div>
   </div>
 </header>
 <main class="px-4 sm:px-6 lg:px-8">
   <div class="mx-auto max-w-full">
-    <.flash_group flash={@flash} />
+    <.modal id="attribute-modal">
+      <h1>Attributes</h1>
+      <Attributes.show data={@modal_attributes} />
+    </.modal>
     <%= if @remote_tap_started do %>
-      <.simple_form :let={_f} for={@form} phx-change="validate" as="form">
-        <div class="mt-4">
-          <.radio_fieldset
-            field={@form[:item]}
-            options={[
-              %{name: "Metrics", id: "metrics"},
-              %{name: "Spans", id: "spans"},
-              %{name: "Logs", id: "logs"}
-            ]}
-            checked_value={@form.params["item"]}
-          />
-        </div>
-      </.simple_form>
-      <Resource.show data={@resource} />
+      <div class="mt-4" id="attribute-filters">
+        <%= for {key, {action, val}} <- @filters do %>
+          <%= case action do %>
+            <% :exclude -> %>
+              <span
+                id={"badge-exclude-#{key}-#{val}"}
+                class="inline-flex items-center px-2 py-1 me-2 text-sm font-medium text-red-800 bg-red-100 rounded dark:bg-red-900 dark:text-red-300"
+              >
+                <%= key %>:<%= val %>
+                <button
+                  type="button"
+                  class="inline-flex items-center p-1  ms-2 text-sm text-red-400 bg-transparent rounded-sm hover:bg-red-200 hover:text-red-900 dark:hover:bg-red-800 dark:hover:text-red-300"
+                  phx-click="remove_attr_filter"
+                  phx-value-key={key}
+                  aria-label="Remove"
+                >
+                  <svg
+                    class="w-2 h-2"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                  >
+                    <path
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                    />
+                  </svg>
+                  <span class="sr-only">Include <%= key %>:<%= val %></span>
+                </button>
+              </span>
+            <% :include -> %>
+              <span
+                id={"badge-include-#{key}-#{val}"}
+                class="inline-flex items-center px-2 py-1 me-2 text-sm font-medium text-green-800 bg-green-100 rounded dark:bg-green-900 dark:text-green-300"
+              >
+                <%= key %>:<%= val %>
+                <button
+                  type="button"
+                  class="inline-flex items-center p-1  ms-2 text-sm text-green-400 bg-transparent rounded-sm hover:bg-green-200 hover:text-green-900 dark:hover:bg-green-800 dark:hover:text-green-300"
+                  phx-click="remove_attr_filter"
+                  phx-value-key={key}
+                  aria-label="Remove"
+                >
+                  <svg
+                    class="w-2 h-2"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                  >
+                    <path
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                    />
+                  </svg>
+                  <span class="sr-only">Include <%= key %>:<%= val %></span>
+                </button>
+              </span>
+            <% _ -> %>
+          <% end %>
+        <% end %>
+      </div>
+      <div class="mt-4">
+        <ul class="items-center w-full text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg sm:flex dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+          <li
+            :for={option <- @stream_options}
+            class="w-full border-b border-gray-200 sm:border-b-0 sm:border-r dark:border-gray-600"
+          >
+            <div class="flex items-center ps-3">
+              <input
+                id={"#{option.id}"}
+                type="radio"
+                value={option.name}
+                name={option.name}
+                checked={@active_stream == option.stream}
+                phx-click="change_stream"
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
+              />
+              <label
+                for={"#{option.id}"}
+                class="w-full py-3 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+              >
+                <%= String.capitalize(option.name) %>
+              </label>
+            </div>
+          </li>
+        </ul>
+      </div>
       <div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0">
         <table class="w-[40rem] mt-11 sm:w-full">
           <thead class="text-sm text-left leading-6 text-zinc-500">
             <tr>
-              <div :for={col_name <- @columns[@form.params["item"]]}>
+              <div :for={col_name <- @columns[@active_stream]}>
                 <th class="p-0 pb-4 pr-6 font-normal"><%= col_name %></th>
               </div>
+              <div :for={col_name <- @custom_columns}>
+                <th class="p-0 pb-4 pr-6 font-normal">
+                  <span
+                    id={"badge-dismiss-#{col_name}"}
+                    class="inline-flex items-center px-2 py-1 me-2 text-sm font-medium text-yellow-800 bg-yellow-100 rounded dark:bg-yellow-900 dark:text-yellow-300"
+                  >
+                    <%= col_name %>
+                    <button
+                      type="button"
+                      class="inline-flex items-center p-1 ms-2 text-sm text-yellow-400 bg-transparent rounded-sm hover:bg-yellow-200 hover:text-yellow-900 dark:hover:bg-yellow-800 dark:hover:text-yellow-300"
+                      phx-click="remove_column"
+                      phx-value-column={col_name}
+                      aria-label="Remove"
+                    >
+                      <svg
+                        class="w-2 h-2"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 14 14"
+                      >
+                        <path
+                          stroke="currentColor"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                        />
+                      </svg>
+                      <span class="sr-only"><%= col_name %></span>
+                    </button>
+                  </span>
+                </th>
+              </div>
+              <th class="p-0 pb-4 pr-6 font-normal">Attributes</th>
+              <th class="p-0 pb-4 pr-6 font-normal">Resource</th>
             </tr>
           </thead>
-          <%= case @form.params["item"] do %>
-            <% "Metrics" -> %>
-              <tbody
-                id="metrics-table-body"
-                phx-update="stream"
-                class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
-              >
-                <tr
-                  :for={{row_id, row} <- @streams.metrics}
-                  id={row_id}
-                  class="group hover:bg-zinc-50"
-                >
-                  <Metric.show metric={row} />
-                </tr>
-              </tbody>
-            <% "Spans" -> %>
-              <tbody
-                id="spans-table-body"
-                phx-update="stream"
-                class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
-              >
-                <tr
-                  :for={{row_id, row} <- @streams.spans}
-                  id={row_id}
-                  class="group hover:bg-zinc-50"
-                >
-                  <Span.show span={row} />
-                </tr>
-              </tbody>
-            <% "Logs" -> %>
-              <tbody
-                id="logs-table-body"
-                phx-update="stream"
-                class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
-              >
-                <tr
-                  :for={{row_id, row} <- @streams.logs}
-                  id={row_id}
-                  class="group hover:bg-zinc-50"
-                >
-                  <Log.show log={row} />
-                </tr>
-              </tbody>
-            <% _ -> %>
-          <% end %>
+
+          <tbody
+            id="data"
+            phx-update="stream"
+            class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
+          >
+            <tr :for={{row_id, row} <- @streams.data} id={row_id}>
+              <ResourceData.show
+                data={row}
+                stream_name={@active_stream}
+                custom_columns={@custom_columns}
+                attribute_click={
+                  fn data ->
+                    JS.push("attribute_clicked", value: data)
+                  end
+                }
+              />
+            </tr>
+          </tbody>
         </table>
       </div>
     <% else %>
-      <div class="flex justify-center">
-        <h1>Remote tap not started, connect to agent</h1>
+      <div class="flex justify-center items-center h-screen">
+        <button
+          phx-click="toggle_remote_tap"
+          hidden={@remote_tap_started}
+          class="bg-blue-500 hover:bg-blue-700 focus:bg-blue-900 text-white font-bold py-2 px-4 rounded focus:shadow-outline active:bg-blue-900"
+        >
+          <h1>Remote tap not started, connect to agent</h1>
+        </button>
       </div>
     <% end %>
     <div
@@ -189,6 +326,9 @@
       aria-labelledby="slide-over-title"
       role="dialog"
       aria-modal="true"
+      phx-remove={hide_modal("menu")}
+      data-show={show_modal("menu")}
+      data-cancel={JS.exec(%JS{}, "phx-remove")}
       id="menu"
     >
       <!--
@@ -230,7 +370,7 @@
               <div class="absolute left-0 top-0 -ml-8 flex pr-2 pt-4 sm:-ml-10 sm:pr-4">
                 <button
                   type="button"
-                  phx-click={toggle_navbar_menu()}
+                  phx-click={JS.exec("data-cancel", to: "#menu")}
                   class="relative rounded-md text-gray-300 hover:text-white focus:outline-none focus:ring-2 focus:ring-white"
                 >
                   <span class="absolute -inset-2.5"></span>
@@ -258,11 +398,12 @@
                   </h2>
                 </div>
                 <div class="relative mt-6 flex-1 px-4 sm:px-6">
+                  <div id="editor" phx-update="ignore"></div>
+                  <textarea id="effective_config" phx-hook="EditorForm" class="hidden">
                   <%= if Map.has_key?(@config, :effective_config) && map_size(@config.effective_config.config_map.config_map) > 0 do %>
-                    <textarea>
                       <%=@config.effective_config.config_map.config_map[""].body %>
-                      </textarea>
                   <% end %>
+                  </textarea>
                 </div>
               </div>
             </div>

@@ -23,17 +23,54 @@ import { LiveSocket } from "phoenix_live_view";
 // import "./user_socket.js"
 import topbar from "../vendor/topbar";
 
+import { EditorView, basicSetup } from "codemirror";
+import { EditorState } from "@codemirror/state";
+import * as yamlMode from "@codemirror/legacy-modes/mode/yaml";
+import { StreamLanguage } from "@codemirror/language";
+
+const yaml = StreamLanguage.define(yamlMode.yaml);
+let state = EditorState.create({
+  extensions: [basicSetup, yaml],
+});
+
+hooks = {
+  EditorForm: {
+    updated() {
+      this.view = new EditorView({
+        doc: "config",
+        height: 100,
+        state: state,
+        parent: document.getElementById("editor"),
+      });
+      let textarea = this.el;
+
+      // Initialise the editor with the content from the form's textarea
+      let content = textarea.value;
+      let new_state = this.view.state.update({
+        changes: { from: 0, to: this.view.state.doc.length, insert: content },
+      });
+      this.view.dispatch(new_state);
+    },
+  },
+};
+
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
 let liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
+  hooks: hooks,
 });
 
 // Show progress bar on live navigation and form submits
 topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" });
 window.addEventListener("phx:page-loading-start", (_info) => topbar.show(300));
 window.addEventListener("phx:page-loading-stop", (_info) => topbar.hide());
+window.addEventListener("phx:js-exec", ({ detail }) => {
+  document.querySelectorAll(detail.to).forEach((el) => {
+    liveSocket.execJS(el, el.getAttribute(detail.attr));
+  });
+});
 
 // connect if there are any LiveViews on the page
 liveSocket.connect();
