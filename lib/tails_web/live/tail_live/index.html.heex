@@ -36,6 +36,9 @@
               />
             </svg>
           </button>
+          <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+            Streaming
+          </span>
         <% else %>
           <button phx-click="toggle_stream">
             <svg
@@ -56,10 +59,10 @@
               />
             </svg>
           </button>
+          <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+            Paused
+          </span>
         <% end %>
-        <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
-          Streaming
-        </span>
       </label>
       <label class="inline-flex items-center me-5 cursor-pointer">
         <input
@@ -108,7 +111,7 @@
             />
           </svg>
           <button phx-click="request_config">
-            Disconnected
+            Connect via OpAMP
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -126,14 +129,16 @@
           </button>
         <% end %>
       </div>
-      <button
-        type="button"
-        phx-click={toggle_navbar_menu()}
-        disabled={!Map.has_key?(@config, :effective_config)}
-        class="relative rounded-md hover:text-red focus:outline-none focus:ring-2 focus:ring-white"
-      >
-        <h3>Show Config</h3>
-      </button>
+      <%= if Map.has_key?(@config, :id) do %>
+        <button
+          type="button"
+          phx-click={"toggle_navbar_menu"}
+          disabled={!Map.has_key?(@config, :effective_config)}
+          class="relative rounded-md hover:text-red focus:outline-none focus:ring-2 focus:ring-white"
+        >
+          <h3>Show Config</h3>
+        </button>
+      <% end %>
     </div>
   </div>
 </header>
@@ -321,6 +326,9 @@
       aria-labelledby="slide-over-title"
       role="dialog"
       aria-modal="true"
+      phx-remove={hide_modal("menu")}
+      data-show={show_modal("menu")}
+      data-cancel={JS.exec(%JS{}, "phx-remove")}
       id="menu"
     >
       <!--
@@ -362,7 +370,7 @@
               <div class="absolute left-0 top-0 -ml-8 flex pr-2 pt-4 sm:-ml-10 sm:pr-4">
                 <button
                   type="button"
-                  phx-click={toggle_navbar_menu()}
+                  phx-click={JS.exec("data-cancel", to: "#menu")}
                   class="relative rounded-md text-gray-300 hover:text-white focus:outline-none focus:ring-2 focus:ring-white"
                 >
                   <span class="absolute -inset-2.5"></span>
@@ -390,11 +398,12 @@
                   </h2>
                 </div>
                 <div class="relative mt-6 flex-1 px-4 sm:px-6">
+                  <div id="editor" phx-update="ignore"></div>
+                  <textarea id="effective_config" phx-hook="EditorForm" class="hidden">
                   <%= if Map.has_key?(@config, :effective_config) && map_size(@config.effective_config.config_map.config_map) > 0 do %>
-                    <textarea>
                       <%=@config.effective_config.config_map.config_map[""].body %>
-                      </textarea>
                   <% end %>
+                  </textarea>
                 </div>
               </div>
             </div>

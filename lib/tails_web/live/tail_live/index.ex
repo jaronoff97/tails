@@ -64,6 +64,15 @@ defmodule TailsWeb.TailLive.Index do
   end
 
   @impl true
+  def handle_event("toggle_navbar_menu", _value, socket) do
+    # JS.toggle(to: "#menu", in: "fade-in-scale", out: "fade-out-scale")
+    {:noreply,
+     socket
+     |> push_event("reset", %{})
+     |> push_event("js-exec", %{to: "#menu", attr: "data-show"})}
+  end
+
+  @impl true
   def handle_event("toggle_remote_tap", _value, socket) do
     case toggle_remote_tap(socket) do
       {:ok, socket} ->
@@ -135,11 +144,6 @@ defmodule TailsWeb.TailLive.Index do
     end
   end
 
-  def toggle_navbar_menu(js \\ %JS{}) do
-    js
-    |> JS.toggle(to: "#menu", in: "fade-in-scale", out: "fade-out-scale")
-  end
-
   defp request_new_config(socket) do
     if !Map.has_key?(socket.assigns.config, :effective_config) do
       Agents.request_latest_config()
@@ -205,6 +209,7 @@ defmodule TailsWeb.TailLive.Index do
 
   defp toggle_remote_tap(socket) when socket.assigns.remote_tap_started do
     Process.exit(socket.assigns.remote_tap_pid, :normal)
+    IO.inspect(socket.assigns.config)
 
     {:ok,
      socket
