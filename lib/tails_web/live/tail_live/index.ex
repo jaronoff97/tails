@@ -1,7 +1,7 @@
 defmodule TailsWeb.TailLive.Index do
   use TailsWeb, :live_view
 
-  alias Tails.{Telemetry, Agents}
+  alias Tails.{Telemetry, Agents, Filters}
   alias TailsWeb.Otel.{Attributes, ResourceData}
   @stream_limit 1000
 
@@ -41,7 +41,7 @@ defmodule TailsWeb.TailLive.Index do
      |> assign(:config, %{})
      |> assign(:columns, @columns)
      |> assign(:custom_columns, MapSet.new([]))
-     |> assign(:filters, %{})
+     |> assign(:filters, %{"test" => {:include, "test"}})
      |> assign(:remote_tap_started, false)
      |> assign(:should_stream, true)
      |> assign(:stream_options, get_options())
@@ -65,7 +65,7 @@ defmodule TailsWeb.TailLive.Index do
 
   @impl true
   def handle_event("toggle_remote_tap", _value, socket) do
-    case start_remote_tap(socket) do
+    case toggle_remote_tap(socket) do
       {:ok, socket} ->
         {:noreply, socket}
 
@@ -82,8 +82,6 @@ defmodule TailsWeb.TailLive.Index do
 
   @impl true
   def handle_event("attribute_clicked", value, socket) do
-    IO.inspect(value)
-
     {:noreply,
      socket
      |> assign(:modal_attributes, value["attributes"])
@@ -100,21 +98,36 @@ defmodule TailsWeb.TailLive.Index do
   end
 
   @impl true
+  def handle_event("remove_attr_filter", %{"key" => key}, socket) do
+    {:noreply,
+     socket
+     |> put_flash(:info, "filter removed, data reset")
+     |> assign(:filters, Map.delete(socket.assigns.filters, key))
+     |> stream(:data, [], reset: true)}
+  end
+
+  @impl true
   def handle_event("attribute_filter", %{"action" => action, "key" => key, "val" => val}, socket) do
-    IO.inspect(action)
-    IO.inspect(key)
-    IO.inspect(val)
-    #     phx-value-action="column"
-    # phx-value-action="include"
-    # phx-value-action="include"
-    # phx-value-action="filter"
-    # phx-value-action="filter"
     case action do
       "column" ->
         {:noreply,
          socket
          |> put_flash(:info, "column added, data reset")
          |> assign(:custom_columns, MapSet.put(socket.assigns.custom_columns, key))
+         |> stream(:data, [], reset: true)}
+
+      "include" ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "include filter added, data reset")
+         |> assign(:filters, Map.put(socket.assigns.filters, key, {:include, val}))
+         |> stream(:data, [], reset: true)}
+
+      "filter" ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "exclude filter added, data reset")
+         |> assign(:filters, Map.put(socket.assigns.filters, key, {:exclude, val}))
          |> stream(:data, [], reset: true)}
 
       "_" ->
@@ -154,14 +167,16 @@ defmodule TailsWeb.TailLive.Index do
 
   @impl true
   def handle_info({:agent_created, message}, socket) do
-    case start_remote_tap(socket) do
-      {:ok, socket} ->
-        {:noreply,
-         socket
-         |> assign(:config, message)}
+    if socket.assigns.remote_tap_started do
+      {:noreply, assign(socket, :config, message)}
+    else
+      case toggle_remote_tap(socket) do
+        {:ok, socket} ->
+          {:noreply, assign(socket, :config, message)}
 
-      {:error, socket} ->
-        {:noreply, socket}
+        {:error, socket} ->
+          {:noreply, socket}
+      end
     end
   end
 
@@ -188,13 +203,21 @@ defmodule TailsWeb.TailLive.Index do
     end)
   end
 
-  defp start_remote_tap(socket) when socket.assigns.remote_tap_started, do: {:ok, socket}
+  defp toggle_remote_tap(socket) when socket.assigns.remote_tap_started do
+    Process.exit(socket.assigns.remote_tap_pid, :normal)
 
-  defp start_remote_tap(socket) do
+    {:ok,
+     socket
+     |> assign(:remote_tap_pid, nil)
+     |> assign(:remote_tap_started, false)}
+  end
+
+  defp toggle_remote_tap(socket) do
     case Tails.RemoteTapClient.start_link([]) do
-      {:ok, _pid} ->
+      {:ok, pid} ->
         {:ok,
          socket
+         |> assign(:remote_tap_pid, pid)
          |> assign(:remote_tap_started, true)}
 
       {:error, reason} ->
@@ -204,11 +227,19 @@ defmodule TailsWeb.TailLive.Index do
 
   def bulk_insert_records(socket, data_type, message) do
     if socket.assigns.should_stream do
+      records =
+        get_records(data_type, message)
+        |> filter_records(socket.assigns.filters)
+
       socket
-      |> stream(:data, get_records(data_type, message), at: -1, limit: -@stream_limit)
+      |> stream(:data, records, at: -1, limit: -@stream_limit)
     else
       socket
     end
+  end
+
+  def filter_records(records, filters) do
+    Stream.filter(records, fn record -> Filters.keep_record(record["attributes"], filters) end)
   end
 
   def get_records(stream_name, message) do

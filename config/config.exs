@@ -13,7 +13,7 @@ config :tails,
 # Configures the endpoint
 config :tails, TailsWeb.Endpoint,
   url: [host: "localhost"],
-  adapter: Phoenix.Endpoint.Cowboy2Adapter,
+  adapter: Bandit.PhoenixAdapter,
   render_errors: [
     formats: [html: TailsWeb.ErrorHTML, json: TailsWeb.ErrorJSON],
     layout: false

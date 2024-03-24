@@ -15,6 +15,12 @@ defmodule Tails.RemoteTapClient do
     )
   end
 
+  def terminate(reason, _state) do
+    IO.puts("WebSockex terminating with reason: #{inspect(reason)}")
+
+    exit(:normal)
+  end
+
   def handle_connect(_conn, state) do
     IO.puts("Connected!")
     {:ok, state}

@@ -7,24 +7,56 @@
       <p class="bg-brand/5 text-brand rounded-full px-2 font-medium leading-6">
         OTC Live Tail
       </p>
-    </div>
-    <div class="flex items-center gap-4 font-semibold leading-6 text-zinc-900">
       <a href="https://github.com/jaronoff97" class="hover:text-zinc-700">
         @jaronoff97
       </a>
-      <a href="https://github.com/jaronoff97/opamp-elixir" class="hover:text-zinc-700">
+      <a href="https://github.com/jaronoff97/tails" class="hover:text-zinc-700">
         GitHub
       </a>
+    </div>
+    <div class="flex items-center gap-4 font-semibold leading-6 text-zinc-900">
       <label class="inline-flex items-center me-5 cursor-pointer">
-        <input
-          type="checkbox"
-          value=""
-          class="sr-only peer"
-          phx-click="toggle_stream"
-          checked={@should_stream}
-        />
-        <div class="relative w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600">
-        </div>
+        <%= if @should_stream do %>
+          <button phx-click="toggle_stream">
+            <svg
+              class="w-[20px] h-[20px] text-gray-800 stroke-black"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 9v6m4-6v6m7-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+              />
+            </svg>
+          </button>
+        <% else %>
+          <button phx-click="toggle_stream">
+            <svg
+              class="w-[20px] h-[20px] text-gray-800  stroke-black"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8 18V6l8 6-8 6Z"
+              />
+            </svg>
+          </button>
+        <% end %>
         <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
           Streaming
         </span>
@@ -112,6 +144,75 @@
       <Attributes.show data={@modal_attributes} />
     </.modal>
     <%= if @remote_tap_started do %>
+      <div class="mt-4" id="attribute-filters">
+        <%= for {key, {action, val}} <- @filters do %>
+          <%= case action do %>
+            <% :exclude -> %>
+              <span
+                id={"badge-exclude-#{key}-#{val}"}
+                class="inline-flex items-center px-2 py-1 me-2 text-sm font-medium text-red-800 bg-red-100 rounded dark:bg-red-900 dark:text-red-300"
+              >
+                <%= key %>:<%= val %>
+                <button
+                  type="button"
+                  class="inline-flex items-center p-1  ms-2 text-sm text-red-400 bg-transparent rounded-sm hover:bg-red-200 hover:text-red-900 dark:hover:bg-red-800 dark:hover:text-red-300"
+                  phx-click="remove_attr_filter"
+                  phx-value-key={key}
+                  aria-label="Remove"
+                >
+                  <svg
+                    class="w-2 h-2"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                  >
+                    <path
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                    />
+                  </svg>
+                  <span class="sr-only">Include <%= key %>:<%= val %></span>
+                </button>
+              </span>
+            <% :include -> %>
+              <span
+                id={"badge-include-#{key}-#{val}"}
+                class="inline-flex items-center px-2 py-1 me-2 text-sm font-medium text-green-800 bg-green-100 rounded dark:bg-green-900 dark:text-green-300"
+              >
+                <%= key %>:<%= val %>
+                <button
+                  type="button"
+                  class="inline-flex items-center p-1  ms-2 text-sm text-green-400 bg-transparent rounded-sm hover:bg-green-200 hover:text-green-900 dark:hover:bg-green-800 dark:hover:text-green-300"
+                  phx-click="remove_attr_filter"
+                  phx-value-key={key}
+                  aria-label="Remove"
+                >
+                  <svg
+                    class="w-2 h-2"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                  >
+                    <path
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                    />
+                  </svg>
+                  <span class="sr-only">Include <%= key %>:<%= val %></span>
+                </button>
+              </span>
+            <% _ -> %>
+          <% end %>
+        <% end %>
+      </div>
       <div class="mt-4">
         <ul class="items-center w-full text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg sm:flex dark:bg-gray-700 dark:border-gray-600 dark:text-white">
           <li
@@ -205,8 +306,14 @@
         </table>
       </div>
     <% else %>
-      <div class="flex justify-center">
-        <h1>Remote tap not started, connect to agent</h1>
+      <div class="flex justify-center items-center h-screen">
+        <button
+          phx-click="toggle_remote_tap"
+          hidden={@remote_tap_started}
+          class="bg-blue-500 hover:bg-blue-700 focus:bg-blue-900 text-white font-bold py-2 px-4 rounded focus:shadow-outline active:bg-blue-900"
+        >
+          <h1>Remote tap not started, connect to agent</h1>
+        </button>
       </div>
     <% end %>
     <div

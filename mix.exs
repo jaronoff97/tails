@@ -48,7 +48,7 @@ defmodule Tails.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:protobuf, "~> 0.10.0"},
-      {:plug_cowboy, "~> 2.5"},
+      {:bandit, "~> 1.3"},
       {:websockex, "~> 0.4.3"},
       {:uuid, "~> 1.1"}
     ]
