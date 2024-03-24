@@ -41,7 +41,7 @@ defmodule TailsWeb.TailLive.Index do
      |> assign(:config, %{})
      |> assign(:columns, @columns)
      |> assign(:custom_columns, MapSet.new([]))
-     |> assign(:filters, %{"test" => {:include, "test"}})
+     |> assign(:filters, %{})
      |> assign(:remote_tap_started, false)
      |> assign(:should_stream, true)
      |> assign(:stream_options, get_options())
