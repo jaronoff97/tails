@@ -132,7 +132,7 @@
       <%= if Map.has_key?(@config, :id) do %>
         <button
           type="button"
-          phx-click={"toggle_navbar_menu"}
+          phx-click="toggle_navbar_menu"
           disabled={!Map.has_key?(@config, :effective_config)}
           class="relative rounded-md hover:text-red focus:outline-none focus:ring-2 focus:ring-white"
         >
@@ -303,6 +303,11 @@
                 attribute_click={
                   fn data ->
                     JS.push("attribute_clicked", value: data)
+                  end
+                }
+                resource_attribute_click={
+                  fn data ->
+                    JS.push("resource_attribute_clicked", value: data)
                   end
                 }
               />

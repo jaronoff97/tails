@@ -98,6 +98,14 @@ defmodule TailsWeb.TailLive.Index do
   end
 
   @impl true
+  def handle_event("resource_attribute_clicked", value, socket) do
+    {:noreply,
+     socket
+     |> assign(:modal_attributes, value["resource_attrs"])
+     |> push_event("js-exec", %{to: "#attribute-modal", attr: "data-show"})}
+  end
+
+  @impl true
   def handle_event("remove_column", %{"column" => column}, socket) do
     {:noreply,
      socket
@@ -233,9 +241,7 @@ defmodule TailsWeb.TailLive.Index do
 
   def bulk_insert_records(socket, data_type, message) do
     if socket.assigns.should_stream do
-      records =
-        get_records(data_type, message)
-        |> filter_records(socket.assigns.filters)
+      records = get_records(data_type, message, socket.assigns.filters)
 
       socket
       |> stream(:data, records, at: -1, limit: -@stream_limit)
@@ -248,21 +254,29 @@ defmodule TailsWeb.TailLive.Index do
     Stream.filter(records, fn record -> Filters.keep_record(record["attributes"], filters) end)
   end
 
-  def get_records(stream_name, message) do
+  def get_records(stream_name, message, filters) do
     message.data[resource_accessor(stream_name)]
-    |> Enum.reduce([], fn e, acc ->
-      acc ++ e[scope_accessor(stream_name)]
-    end)
-    |> Enum.reduce([], fn e, acc ->
-      acc ++ e[record_accessor(stream_name)]
-    end)
-    |> Enum.map(fn item ->
-      Map.put_new(item, :id, UUID.uuid4())
-      |> normalize
-
-      # |> append_resource(message.data[resource_accessor(stream_name)]["attributes"])
+    |> Enum.flat_map(fn resourceRecord ->
+      resourceRecord[scope_accessor(stream_name)]
+      |> Enum.flat_map(fn scopeRecord ->
+        scopeRecord[record_accessor(stream_name)]
+        |> Enum.reduce([], fn item, acc ->
+          item
+          |> Map.put_new(:id, UUID.uuid4())
+          |> normalize()
+          |> Map.put_new(:resource_attrs, resourceRecord["resource"]["attributes"])
+          |> filter_record(filters)
+          |> append_record?(acc)
+        end)
+      end)
     end)
   end
+
+  defp append_record?({true, record}, acc), do: acc ++ [record]
+  defp append_record?({false, _record}, acc), do: acc
+
+  defp filter_record(record, filters),
+    do: {Filters.keep_record(record["attributes"], filters), record}
 
   defp resource_accessor(stream_name),
     do: "resource#{String.capitalize(Atom.to_string(stream_name))}"
