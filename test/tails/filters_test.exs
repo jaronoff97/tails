@@ -47,6 +47,14 @@ defmodule Tails.FiltersTest do
            ]
   end
 
+  test "keep_record no attrs exclude filters is true" do
+    assert Tails.Filters.keep_record([], [@exclude_test_filter]) == true
+  end
+
+  test "keep_record no attrs include filters is false" do
+    assert Tails.Filters.keep_record([], [@include_test_filter]) == false
+  end
+
   test "keep_record no filters is true" do
     assert Tails.Filters.keep_record([@test_attr], []) == true
   end

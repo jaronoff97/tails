@@ -2,9 +2,11 @@ defmodule Tails.Filters do
   alias Tails.Telemetry
 
   def keep_record(attributes, filters) do
+    initial_state = {contains_action(filters, :include), contains_action(filters, :exclude)}
+
     attributes
     |> cartesian(filters)
-    |> Enum.reduce({:empty, :empty}, fn {attribute, {key, filter}}, current_state ->
+    |> Enum.reduce(initial_state, fn {attribute, {key, filter}}, current_state ->
       cond do
         attribute["key"] == key ->
           apply_filter(attribute["value"], filter) |> next_state(current_state, true)
@@ -24,6 +26,20 @@ defmodule Tails.Filters do
       Stream.map(filters, fn filter ->
         {attribute, filter}
       end)
+    end)
+  end
+
+  defp contains_action(filters, action) do
+    Enum.reduce_while(filters, :empty, fn filter, acc ->
+      {_, {filter_action, _}} = filter
+
+      cond do
+        filter_action == action ->
+          {:halt, :nomatch}
+
+        true ->
+          {:cont, acc}
+      end
     end)
   end
 

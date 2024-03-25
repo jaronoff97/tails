@@ -208,8 +208,9 @@ defmodule TailsWeb.TailLive.Index do
   end
 
   defp toggle_remote_tap(socket) when socket.assigns.remote_tap_started do
-    Process.exit(socket.assigns.remote_tap_pid, :normal)
-    IO.inspect(socket.assigns.config)
+    IO.inspect(socket.assigns.remote_tap_pid)
+    resp = Process.exit(socket.assigns.remote_tap_pid, :normal)
+    IO.inspect(resp)
 
     {:ok,
      socket
@@ -255,7 +256,12 @@ defmodule TailsWeb.TailLive.Index do
     |> Enum.reduce([], fn e, acc ->
       acc ++ e[record_accessor(stream_name)]
     end)
-    |> Enum.map(fn item -> Map.put_new(item, :id, UUID.uuid4()) end)
+    |> Enum.map(fn item ->
+      Map.put_new(item, :id, UUID.uuid4())
+      |> normalize
+
+      # |> append_resource(message.data[resource_accessor(stream_name)]["attributes"])
+    end)
   end
 
   defp resource_accessor(stream_name),
@@ -269,5 +275,23 @@ defmodule TailsWeb.TailLive.Index do
     socket
     |> assign(:page_title, "Listing Tails")
     |> assign(:tail, nil)
+  end
+
+  defp normalize(%{"histogram" => %{"dataPoints" => data_points}} = data),
+    do: Map.put(data, "attributes", get_attributes_from_metric(data_points))
+
+  defp normalize(%{"gauge" => %{"dataPoints" => data_points}} = data),
+    do: Map.put(data, "attributes", get_attributes_from_metric(data_points))
+
+  defp normalize(%{"sum" => %{"dataPoints" => data_points}} = data),
+    do: Map.put(data, "attributes", get_attributes_from_metric(data_points))
+
+  defp normalize(data), do: data
+
+  defp append_resource(data, resource_attrs), do: Map.put(data, "resource", resource_attrs)
+
+  defp get_attributes_from_metric(data_points) do
+    data_points
+    |> Enum.reduce([], fn point, acc -> point["attributes"] ++ acc end)
   end
 end

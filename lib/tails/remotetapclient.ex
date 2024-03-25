@@ -45,7 +45,7 @@ defmodule Tails.RemoteTapClient do
   end
 
   def handle_frame({_type, msg}, state) do
-    # IO.puts("Received Message - Type: #{inspect(type)} -- Message: #{inspect(msg)}")
+    # IO.puts("Received Message -- Message: #{inspect(msg)}")
 
     case Jason.decode(msg) do
       {:ok, parsed} -> Tails.Telemetry.new_message(parsed)
