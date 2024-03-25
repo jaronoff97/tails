@@ -68,5 +68,3 @@ config :phoenix, :plug_init_mode, :runtime
 # Include HEEx debug annotations as HTML comments in rendered markup
 config :phoenix_live_view, :debug_heex_annotations, true
 
-# Disable swoosh api client as it is only required for production adapters.
-config :swoosh, :api_client, false

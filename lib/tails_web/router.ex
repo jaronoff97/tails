@@ -26,7 +26,6 @@ defmodule TailsWeb.Router do
     pipe_through :browser
 
     live_dashboard "/dashboard", metrics: TailsWeb.Telemetry
-    forward "/mailbox", Plug.Swoosh.MailboxPreview
   end
 
   if Application.compile_env(:tails, :dev_routes) do
