@@ -38,10 +38,13 @@ defmodule TailsWeb.TailLive.Index do
      socket
      |> stream(:data, [], at: -1, limit: -@stream_limit)
      |> assign(:modal_attributes, %{})
+     |> assign(:modal_type, "attributes")
      |> assign(:config, %{})
      |> assign(:columns, @columns)
      |> assign(:custom_columns, MapSet.new([]))
+     |> assign(:resource_columns, MapSet.new([]))
      |> assign(:filters, %{})
+     |> assign(:resource_filters, %{})
      |> assign(:remote_tap_started, false)
      |> assign(:should_stream, true)
      |> assign(:stream_options, get_options())
@@ -94,6 +97,7 @@ defmodule TailsWeb.TailLive.Index do
     {:noreply,
      socket
      |> assign(:modal_attributes, value["attributes"])
+     |> assign(:modal_type, "attributes")
      |> push_event("js-exec", %{to: "#attribute-modal", attr: "data-show"})}
   end
 
@@ -101,25 +105,26 @@ defmodule TailsWeb.TailLive.Index do
   def handle_event("resource_attribute_clicked", value, socket) do
     {:noreply,
      socket
-     |> assign(:modal_attributes, value["resource_attrs"])
+     |> assign(:modal_attributes, value["resource"])
+     |> assign(:modal_type, "resource")
      |> push_event("js-exec", %{to: "#attribute-modal", attr: "data-show"})}
   end
 
   @impl true
-  def handle_event("remove_column", %{"column" => column}, socket) do
+  def handle_event("remove_column", %{"column" => column, "column_type" => column_type}, socket) do
     {:noreply,
      socket
      |> put_flash(:error, "column removed, data reset")
-     |> assign(:custom_columns, MapSet.delete(socket.assigns.custom_columns, column))
+     |> remove_column(column, column_type)
      |> stream(:data, [], reset: true)}
   end
 
   @impl true
-  def handle_event("remove_attr_filter", %{"key" => key}, socket) do
+  def handle_event("remove_attr_filter", %{"key" => key, "filter_type" => filter_type}, socket) do
     {:noreply,
      socket
      |> put_flash(:info, "filter removed, data reset")
-     |> assign(:filters, Map.delete(socket.assigns.filters, key))
+     |> remove_filter(key, filter_type)
      |> stream(:data, [], reset: true)}
   end
 
@@ -130,31 +135,23 @@ defmodule TailsWeb.TailLive.Index do
         {:noreply,
          socket
          |> put_flash(:info, "column added, data reset")
-         |> assign(:custom_columns, MapSet.put(socket.assigns.custom_columns, key))
+         |> assign_columns(key)
          |> stream(:data, [], reset: true)}
 
       "include" ->
         {:noreply,
          socket
          |> put_flash(:info, "include filter added, data reset")
-         |> assign(:filters, Map.put(socket.assigns.filters, key, {:include, val}))
-         |> stream(:data, [], reset: true)}
+         |> assign_filters(:include, key, val)}
 
       "filter" ->
         {:noreply,
          socket
          |> put_flash(:info, "exclude filter added, data reset")
-         |> assign(:filters, Map.put(socket.assigns.filters, key, {:exclude, val}))
-         |> stream(:data, [], reset: true)}
+         |> assign_filters(:exclude, key, val)}
 
       "_" ->
         {:noreply, socket}
-    end
-  end
-
-  defp request_new_config(socket) do
-    if !Map.has_key?(socket.assigns.config, :effective_config) do
-      Agents.request_latest_config()
     end
   end
 
@@ -208,6 +205,50 @@ defmodule TailsWeb.TailLive.Index do
     end
   end
 
+  defp remove_column(socket, column, column_type) when column_type == "attributes",
+    do: assign(socket, :custom_columns, MapSet.delete(socket.assigns.custom_columns, column))
+
+  defp remove_column(socket, column, column_type) when column_type == "resource",
+    do: assign(socket, :resource_columns, MapSet.delete(socket.assigns.resource_columns, column))
+
+  defp remove_column(socket, _column, _column_type), do: socket
+
+  defp remove_filter(socket, key, filter_type) when filter_type == "attributes",
+    do: assign(socket, :filters, Map.delete(socket.assigns.filters, key))
+
+  defp remove_filter(socket, key, filter_type) when filter_type == "resource",
+    do: assign(socket, :resource_filters, Map.delete(socket.assigns.resource_filters, key))
+
+  defp remove_filter(socket, _key, _filter_type), do: socket
+
+  defp assign_columns(socket, key) when socket.assigns.modal_type == "resource",
+    do: assign(socket, :resource_columns, MapSet.put(socket.assigns.resource_columns, key))
+
+  defp assign_columns(socket, key) when socket.assigns.modal_type == "attributes",
+    do: assign(socket, :custom_columns, MapSet.put(socket.assigns.custom_columns, key))
+
+  defp assign_columns(socket, _key), do: socket
+
+  defp assign_filters(socket, action, key, val) when socket.assigns.modal_type == "resource" do
+    socket
+    |> assign(:resource_filters, Map.put(socket.assigns.resource_filters, key, {action, val}))
+    |> stream(:data, [], reset: true)
+  end
+
+  defp assign_filters(socket, action, key, val) when socket.assigns.modal_type == "attributes" do
+    socket
+    |> assign(:filters, Map.put(socket.assigns.filters, key, {action, val}))
+    |> stream(:data, [], reset: true)
+  end
+
+  defp assign_filters(socket, _action, _key, _val), do: socket
+
+  defp request_new_config(socket) do
+    if !Map.has_key?(socket.assigns.config, :effective_config) do
+      Agents.request_latest_config()
+    end
+  end
+
   def get_options() do
     [:metrics, :spans, :logs]
     |> Enum.map(fn a ->
@@ -241,7 +282,8 @@ defmodule TailsWeb.TailLive.Index do
 
   def bulk_insert_records(socket, data_type, message) do
     if socket.assigns.should_stream do
-      records = get_records(data_type, message, socket.assigns.filters)
+      records =
+        get_records(data_type, message, socket.assigns.filters, socket.assigns.resource_filters)
 
       socket
       |> stream(:data, records, at: -1, limit: -@stream_limit)
@@ -250,24 +292,27 @@ defmodule TailsWeb.TailLive.Index do
     end
   end
 
-  def filter_records(records, filters) do
-    Stream.filter(records, fn record -> Filters.keep_record(record["attributes"], filters) end)
+  def get_records(stream_name, message, filters, resource_filters) do
+    message.data[resource_accessor(stream_name)]
+    |> Enum.reduce([], fn resourceRecord, resourceAcc ->
+      case keep_record?(resourceRecord["resource"], resource_filters) do
+        {true, _} -> resourceAcc ++ flatten_records(resourceRecord, stream_name, filters)
+        {false, _} -> resourceAcc
+      end
+    end)
   end
 
-  def get_records(stream_name, message, filters) do
-    message.data[resource_accessor(stream_name)]
-    |> Enum.flat_map(fn resourceRecord ->
-      resourceRecord[scope_accessor(stream_name)]
-      |> Enum.flat_map(fn scopeRecord ->
-        scopeRecord[record_accessor(stream_name)]
-        |> Enum.reduce([], fn item, acc ->
-          item
-          |> Map.put_new(:id, UUID.uuid4())
-          |> normalize()
-          |> Map.put_new(:resource_attrs, resourceRecord["resource"]["attributes"])
-          |> filter_record(filters)
-          |> append_record?(acc)
-        end)
+  defp flatten_records(resourceRecord, stream_name, filters) do
+    resourceRecord[scope_accessor(stream_name)]
+    |> Enum.flat_map(fn scopeRecord ->
+      scopeRecord[record_accessor(stream_name)]
+      |> Enum.reduce([], fn item, acc ->
+        item
+        |> Map.put_new(:id, UUID.uuid4())
+        |> normalize()
+        |> Map.put_new("resource", resourceRecord["resource"]["attributes"])
+        |> keep_record?(filters)
+        |> append_record?(acc)
       end)
     end)
   end
@@ -275,7 +320,7 @@ defmodule TailsWeb.TailLive.Index do
   defp append_record?({true, record}, acc), do: acc ++ [record]
   defp append_record?({false, _record}, acc), do: acc
 
-  defp filter_record(record, filters),
+  defp keep_record?(record, filters),
     do: {Filters.keep_record(record["attributes"], filters), record}
 
   defp resource_accessor(stream_name),
@@ -301,8 +346,6 @@ defmodule TailsWeb.TailLive.Index do
     do: Map.put(data, "attributes", get_attributes_from_metric(data_points))
 
   defp normalize(data), do: data
-
-  defp append_resource(data, resource_attrs), do: Map.put(data, "resource", resource_attrs)
 
   defp get_attributes_from_metric(data_points) do
     data_points

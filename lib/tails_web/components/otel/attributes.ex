@@ -4,6 +4,7 @@ defmodule TailsWeb.Otel.Attributes do
   alias Tails.Telemetry
 
   def show(assigns) do
+
     ~H"""
     <div>
       <.table id="attribute" rows={@data}>

@@ -15,7 +15,10 @@ defmodule TailsWeb.Otel.ResourceData do
       <% _ -> %>
     <% end %>
     <td :for={col_name <- @custom_columns}>
-      <%= get_attribute_value(@data, col_name) %>
+      <%= get_attribute_value(@data, "attributes", col_name) %>
+    </td>
+    <td :for={col_name <- @resource_columns}>
+      <%= get_attribute_value(@data, "resource", col_name) %>
     </td>
     <td>
       <button
@@ -31,14 +34,16 @@ defmodule TailsWeb.Otel.ResourceData do
         class="py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-full border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
         phx-click={@resource_attribute_click && @resource_attribute_click.(@data)}
       >
-        Show Resource attributes
+        Show resource attributes
       </button>
     </td>
     """
   end
 
-  def get_attribute_value(data, key) do
-    data["attributes"]
+  def get_attribute_value(data, accessor, key) do
+    IO.inspect(data)
+
+    data[accessor]
     |> Enum.find(%{}, fn attribute -> attribute["key"] == key end)
     |> Map.get("value")
     |> Telemetry.string_from_value()
