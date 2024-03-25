@@ -18,6 +18,8 @@ defmodule TailsWeb.AgentsChannel do
 
   @impl true
   def handle_info({:request_config, _payload}, socket) do
+    # IO.inspect("requesting config")
+
     server_to_agent = %Opamp.Proto.ServerToAgent{
       instance_uid: socket.assigns.agent_id,
       capabilities: server_capabilities(),

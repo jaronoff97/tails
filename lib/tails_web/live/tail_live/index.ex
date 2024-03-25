@@ -257,9 +257,7 @@ defmodule TailsWeb.TailLive.Index do
   end
 
   defp toggle_remote_tap(socket) when socket.assigns.remote_tap_started do
-    IO.inspect(socket.assigns.remote_tap_pid)
-    resp = Process.exit(socket.assigns.remote_tap_pid, :normal)
-    IO.inspect(resp)
+    GenServer.stop(socket.assigns.remote_tap_pid, :normal)
 
     {:ok,
      socket
