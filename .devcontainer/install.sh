@@ -3,6 +3,7 @@
 sudo apt-get update
 sudo apt-get -y install wget inotify-tools
 
+# TODO: uncomment these once we don't need to build from source
 # ARCH=$(uname -m)
 
 # if [ "$ARCH" = "x86_64" ]; then
