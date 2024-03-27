@@ -3,9 +3,24 @@ defmodule TailsWeb.Otel.Metric do
 
   def show(assigns) do
     ~H"""
-    <td><%= @metric |> get_data |> get_latest %></td>
-    <td><%= @metric["name"] %></td>
-    <td><%= @metric["description"] %></td>
+    <td
+      class={["relative p-0", @row_click && "hover:cursor-pointer"]}
+      phx-click={@row_click && @row_click.(@metric)}
+    >
+      <%= @metric |> get_data |> get_latest %>
+    </td>
+    <td
+      class={["relative p-0", @row_click && "hover:cursor-pointer"]}
+      phx-click={@row_click && @row_click.(@metric)}
+    >
+      <%= @metric["name"] %>
+    </td>
+    <td
+      class={["relative p-0", @row_click && "hover:cursor-pointer"]}
+      phx-click={@row_click && @row_click.(@metric)}
+    >
+      <%= @metric["description"] %>
+    </td>
     """
   end
 

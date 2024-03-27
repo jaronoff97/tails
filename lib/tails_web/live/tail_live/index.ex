@@ -1,8 +1,9 @@
 defmodule TailsWeb.TailLive.Index do
   use TailsWeb, :live_view
 
+  alias TailsWeb.Common.{Buttons, Slideover}
   alias Tails.{Telemetry, Agents, Filters}
-  alias TailsWeb.Otel.{Attributes, ResourceData}
+  alias TailsWeb.Otel.{Attributes, ResourceData, DataViewer}
   @stream_limit 1000
 
   @columns %{
@@ -39,6 +40,7 @@ defmodule TailsWeb.TailLive.Index do
      |> stream(:data, [], at: -1, limit: -@stream_limit)
      |> assign(:modal_attributes, %{})
      |> assign(:modal_type, "attributes")
+     |> assign(:active_raw_data, %{})
      |> assign(:config, %{})
      |> assign(:columns, @columns)
      |> assign(:custom_columns, MapSet.new([]))
@@ -71,8 +73,7 @@ defmodule TailsWeb.TailLive.Index do
     # JS.toggle(to: "#menu", in: "fade-in-scale", out: "fade-out-scale")
     {:noreply,
      socket
-     |> push_event("reset", %{})
-     |> push_event("js-exec", %{to: "#menu", attr: "data-show"})}
+     |> push_event("js-exec", %{to: "#collector", attr: "data-show"})}
   end
 
   @impl true
@@ -90,6 +91,30 @@ defmodule TailsWeb.TailLive.Index do
   def handle_event("request_config", _value, socket) do
     request_new_config(socket)
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("slideover_cancel", _value, socket) do
+    {:noreply,
+     socket
+     |> push_event("js-exec", %{to: "#menu", attr: "data-cancel"})
+     |> assign(:active_raw_data, %{})}
+  end
+
+  @impl true
+  def handle_event("row_clicked", value, socket) do
+    {:noreply,
+     socket
+     |> assign(:active_raw_data, value)
+     |> push_event("js-exec", %{to: "#row-data", attr: "data-show"})}
+  end
+
+  @impl true
+  def handle_event("raw_data_clicked", value, socket) do
+    {:noreply,
+     socket
+     |> assign(:active_raw_data, value)
+     |> push_event("js-exec", %{to: "#raw-data-modal", attr: "data-show"})}
   end
 
   @impl true
@@ -114,7 +139,7 @@ defmodule TailsWeb.TailLive.Index do
   def handle_event("remove_column", %{"column" => column, "column_type" => column_type}, socket) do
     {:noreply,
      socket
-     |> put_flash(:error, "column removed, data reset")
+     |> put_flash(:info, "column removed, data reset")
      |> remove_column(column, column_type)
      |> stream(:data, [], reset: true)}
   end
@@ -308,7 +333,7 @@ defmodule TailsWeb.TailLive.Index do
         item
         |> Map.put_new(:id, UUID.uuid4())
         |> normalize()
-        |> Map.put_new("resource", resourceRecord["resource"]["attributes"])
+        |> Map.put_new("resource", Map.get(resourceRecord["resource"], "attributes", []))
         |> keep_record?(filters)
         |> append_record?(acc)
       end)
@@ -318,8 +343,14 @@ defmodule TailsWeb.TailLive.Index do
   defp append_record?({true, record}, acc), do: acc ++ [record]
   defp append_record?({false, _record}, acc), do: acc
 
-  defp keep_record?(record, filters),
-    do: {Filters.keep_record(record["attributes"], filters), record}
+  defp keep_record?(%{"attributes" => attributes} = record, filters),
+    do: {Filters.keep_record(attributes, filters), record}
+
+  defp keep_record?(%{} = record, filters),
+    do: {Filters.keep_record([], filters), record}
+
+  defp keep_record?(_, filters),
+    do: {Filters.keep_record([], filters), %{}}
 
   defp resource_accessor(stream_name),
     do: "resource#{String.capitalize(Atom.to_string(stream_name))}"

@@ -45,9 +45,22 @@ defmodule TailsWeb.CoreComponents do
     ~H"""
     <div
       id={@id}
-      phx-mounted={@show && show_modal(@id)}
-      phx-remove={hide_modal(@id)}
-      data-show={show_modal(@id)}
+      phx-mounted={
+        @show &&
+          show_modal(
+            @id,
+            {"transition-all transform ease-out duration-300", "opacity-0", "opacity-100"}
+          )
+      }
+      phx-remove={
+        hide_modal(@id, {"transition-all transform ease-in duration-200", "opacity-100", "opacity-0"})
+      }
+      data-show={
+        show_modal(
+          @id,
+          {"transition-all transform ease-out duration-300", "opacity-0", "opacity-100"}
+        )
+      }
       data-cancel={JS.exec(@on_cancel, "phx-remove")}
       class="relative z-50 hidden"
     >
@@ -693,23 +706,23 @@ defmodule TailsWeb.CoreComponents do
     )
   end
 
-  def show_modal(js \\ %JS{}, id) when is_binary(id) do
+  def show_modal(js \\ %JS{}, id, transition) when is_binary(id) do
     js
     |> JS.show(to: "##{id}")
     |> JS.show(
       to: "##{id}-bg",
-      transition: {"transition-all transform ease-out duration-300", "opacity-0", "opacity-100"}
+      transition: transition
     )
     |> show("##{id}-container")
     |> JS.add_class("overflow-hidden", to: "body")
     |> JS.focus_first(to: "##{id}-content")
   end
 
-  def hide_modal(js \\ %JS{}, id) do
+  def hide_modal(js \\ %JS{}, id, transition) do
     js
     |> JS.hide(
       to: "##{id}-bg",
-      transition: {"transition-all transform ease-in duration-200", "opacity-100", "opacity-0"}
+      transition: transition
     )
     |> hide("##{id}-container")
     |> JS.hide(to: "##{id}", transition: {"block", "block", "hidden"})

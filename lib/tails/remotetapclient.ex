@@ -38,7 +38,7 @@ defmodule Tails.RemoteTapClient do
     end
   end
 
-  def handle_disconnect(connection_status_map, state) do
+  def handle_disconnect(_connection_status_map, state) do
     {:ok, state}
   end
 
