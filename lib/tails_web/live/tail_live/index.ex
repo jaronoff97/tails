@@ -41,12 +41,18 @@ defmodule TailsWeb.TailLive.Index do
      |> assign(:modal_attributes, %{})
      |> assign(:modal_type, "attributes")
      |> assign(:active_raw_data, %{})
-     |> assign(:config, %{})
+     |> assign(:agent, %{})
      |> assign(:columns, @columns)
      |> assign(:custom_columns, MapSet.new([]))
      |> assign(:resource_columns, MapSet.new([]))
-     |> assign(:available_filters, %{})
-     |> assign(:available_resource_filters, %{})
+     |> assign(:available_filters, %{"net.peer.ip" => MapSet.new(["1.2.3.4", "test"])})
+     |> assign(:available_resource_filters, %{
+       "service.name" => MapSet.new(["spaningest"]),
+       "service.version" => MapSet.new(["0.4.0"]),
+       "telemetry.sdk.language" => MapSet.new(["python"]),
+       "telemetry.sdk.name" => MapSet.new(["opentelemetry"]),
+       "telemetry.sdk.version" => MapSet.new(["1.14.0"])
+     })
      |> assign(:filters, %{})
      |> assign(:resource_filters, %{})
      |> assign(:remote_tap_started, false)
@@ -112,32 +118,6 @@ defmodule TailsWeb.TailLive.Index do
   end
 
   @impl true
-  def handle_event("raw_data_clicked", value, socket) do
-    {:noreply,
-     socket
-     |> assign(:active_raw_data, value)
-     |> push_event("js-exec", %{to: "#raw-data-modal", attr: "data-show"})}
-  end
-
-  @impl true
-  def handle_event("attribute_clicked", value, socket) do
-    {:noreply,
-     socket
-     |> assign(:modal_attributes, value["attributes"])
-     |> assign(:modal_type, "attributes")
-     |> push_event("js-exec", %{to: "#attribute-modal", attr: "data-show"})}
-  end
-
-  @impl true
-  def handle_event("resource_attribute_clicked", value, socket) do
-    {:noreply,
-     socket
-     |> assign(:modal_attributes, value["resource"])
-     |> assign(:modal_type, "resource")
-     |> push_event("js-exec", %{to: "#attribute-modal", attr: "data-show"})}
-  end
-
-  @impl true
   def handle_event("remove_column", %{"column" => column, "column_type" => column_type}, socket) do
     {:noreply,
      socket
@@ -191,24 +171,24 @@ defmodule TailsWeb.TailLive.Index do
   def handle_info({:agent_deleted, _message}, socket) do
     {:noreply,
      socket
-     |> assign(:config, %{})}
+     |> assign(:agent, %{})}
   end
 
   @impl true
   def handle_info({:agent_updated, message}, socket) do
     {:noreply,
      socket
-     |> assign(:config, message)}
+     |> assign(:agent, message)}
   end
 
   @impl true
   def handle_info({:agent_created, message}, socket) do
     if socket.assigns.remote_tap_started do
-      {:noreply, assign(socket, :config, message)}
+      {:noreply, assign(socket, :agent, message)}
     else
       case toggle_remote_tap(socket) do
         {:ok, socket} ->
-          {:noreply, assign(socket, :config, message)}
+          {:noreply, assign(socket, :agent, message)}
 
         {:error, socket} ->
           {:noreply, socket}
@@ -271,7 +251,7 @@ defmodule TailsWeb.TailLive.Index do
   defp assign_filters(socket, _action, _key, _val), do: socket
 
   defp request_new_config(socket) do
-    if !Map.has_key?(socket.assigns.config, :effective_config) do
+    if !Map.has_key?(socket.assigns.agent, :effective_config) do
       Agents.request_latest_config()
     end
   end
@@ -335,9 +315,6 @@ defmodule TailsWeb.TailLive.Index do
       Enum.reduce(records, current_state, fn record, {attributes, resource} ->
         {update_kvs(record["attributes"], attributes), update_kvs(record["resource"], resource)}
       end)
-
-    IO.inspect(attributes)
-    IO.inspect(resource)
 
     socket
     |> assign(:available_filters, attributes)
@@ -404,6 +381,25 @@ defmodule TailsWeb.TailLive.Index do
 
   defp get_attributes_from_metric(data_points) do
     data_points
-    |> Enum.reduce([], fn point, acc -> point["attributes"] ++ acc end)
+    |> Enum.reduce([], fn point, acc -> Map.get(point, "attributes", []) ++ acc end)
+  end
+
+  defp convert_to_attrs(opamp_attrs) do
+    Enum.reduce(opamp_attrs, [], fn kv, acc ->
+      acc ++ [%{"key" => kv.key, "value" => %{"stringValue" => get_value(kv)}}]
+    end)
+  end
+
+  defp get_value(nil), do: ""
+
+  defp get_value(kv) do
+    case kv.value.value do
+      {:string_value, v} ->
+        v
+
+      {other, _v} ->
+        IO.puts("unable to retrieve value for type #{other}")
+        ""
+    end
   end
 end

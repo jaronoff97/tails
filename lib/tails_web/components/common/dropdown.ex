@@ -54,7 +54,7 @@ defmodule TailsWeb.Common.Dropdown do
       </button>
       <ul id={"#{@id}-menu"} class="hidden py-2 space-y-2" data-cancel={JS.exec(%JS{}, "phx-remove")}>
         <li :for={item <- @item}>
-          <div class="flex items-center p-2 pl-11 w-full text-base font-medium text-gray-900 rounded-lg transition duration-75 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700">
+          <div class="block items-center p-2 pl-11 w-full text-base font-medium text-gray-900 rounded-lg transition duration-75 group dark:text-white ">
             <%= render_slot(item) %>
           </div>
         </li>

@@ -7,7 +7,7 @@ defmodule TailsWeb.Common.Buttons do
   """
   attr :id, :string, required: true
   attr :text, :string, default: ""
-  attr :icon, :atom, values: [:pause, :play, :none], default: :none
+  attr :icon, :atom, values: [:pause, :play, :refresh, :none], default: :none
   attr :phx_click, :string, required: false
 
   def navbar_button(assigns) do

@@ -47,7 +47,7 @@
         </span>
       </label>
       <label class="inline-flex items-center me-5 cursor-pointer">
-        <%= if Map.has_key?(@config, :id) do %>
+        <%= if Map.has_key?(@agent, :id) do %>
           <div class="dark:text-slate-300">
             <Buttons.icon icon={:green_check} /> Agent Connected
           </div>
@@ -60,11 +60,11 @@
           />
         <% end %>
       </label>
-      <%= if Map.has_key?(@config, :id) do %>
+      <%= if Map.has_key?(@agent, :id) do %>
         <button
           type="button"
           phx-click="toggle_navbar_menu"
-          disabled={!Map.has_key?(@config, :effective_config)}
+          disabled={!Map.has_key?(@agent, :effective_config)}
           class="relative rounded-md hover:text-red focus:outline-none focus:ring-2 focus:ring-white dark:text-slate-300"
         >
           <h3>Show Config</h3>
@@ -76,16 +76,6 @@
 
 <main class="px-4 sm:px-6 lg:px-8">
   <div class="mx-auto max-w-full">
-    <.modal id="attribute-modal">
-      <h1><%= String.capitalize(@modal_type) %></h1>
-      <Attributes.show data={@modal_attributes} modal_type={@modal_type} />
-    </.modal>
-    <.modal id="raw-data-modal">
-      <h1>Raw data</h1>
-      <textarea>
-      <%= Jason.encode!(@active_raw_data) %>
-      </textarea>
-    </.modal>
     <%= if @remote_tap_started do %>
       <div class="mt-4" id="attribute-filters">
         <%= if length(Map.keys(@filters)) > 0 do %>
@@ -275,13 +265,32 @@
                     Attributes
                   </:button>
 
-                  <:item :for={{k, values} <- @available_filters}>
-                    <%= k %>:
-                    <ul>
-                      <li :for={v <- values}>
-                        <%= v %>
-                      </li>
-                    </ul>
+                  <:item :for={{k, values} <- @available_filters} id={"#{k}-attr-item"}>
+                    <button
+                      type="button"
+                      class="flex w-full items-center justify-between bg-white px-2 py-3 text-gray-400 hover:text-gray-500"
+                      aria-controls="filter-section-mobile-0"
+                      aria-expanded="false"
+                    >
+                      <span class="font-medium text-gray-900"><%= k %></span>
+                    </button>
+                    <div id={"#{k}-attr-filter"}>
+                      <div :for={v <- values} class="space-y-6">
+                        <div class="flex items-center">
+                          <input
+                            id={"#{k}-#{v}-attr-filter"}
+                            type="checkbox"
+                            class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                          />
+                          <label
+                            for={"#{k}-#{v}-attr-filter-label"}
+                            class="ml-3 min-w-0 flex-1 text-gray-500"
+                          >
+                            <%= v %>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
                   </:item>
                 </Dropdown.dropdown>
               </li>
@@ -291,9 +300,36 @@
                     Resource
                   </:button>
 
-                  <:item href="/links">Links</:item>
-                  <:item href="/posts">Posts</:item>
-                  <:item href="/admin">Admin</:item>
+                  <:item
+                    :for={{k, values} <- @available_resource_filters}
+                    id={"#{k}-resource-item"}
+                  >
+                    <button
+                      type="button"
+                      class="flex w-full items-center justify-between bg-white px-2 py-3 text-gray-400 hover:text-gray-500"
+                      aria-controls="filter-section-mobile-0"
+                      aria-expanded="false"
+                    >
+                      <span class="font-medium text-gray-900"><%= k %></span>
+                    </button>
+                    <div id={"#{k}-resource-filter"}>
+                      <div :for={v <- values} class="space-y-6">
+                        <div class="flex items-center">
+                          <input
+                            id={"#{k}-#{v}-resource-filter"}
+                            type="checkbox"
+                            class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                          />
+                          <label
+                            for={"#{k}-#{v}-resource-filter"}
+                            class="ml-3 min-w-0 flex-1 text-gray-500"
+                          >
+                            <%= v %>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </:item>
                 </Dropdown.dropdown>
               </li>
             </ul>
@@ -419,15 +455,28 @@
     <Slideover.slideover id="collector">
       <div class="flex h-full flex-col overflow-y-scroll dark:bg-gray-700 dark:border-gray-600 dark:text-slate-300 py-6">
         <div class="px-4 sm:px-6">
-          <h2 class="text-base font-semibold leading-6 text-gray-900" id="slide-over-title">
-            Collector Configuration
-          </h2>
+          <%= if Map.has_key?(@agent, :id) do %>
+            <h1 class="text-lg font-semibold leading-8 text-zinc-800">
+              Collector <%= @agent.id %>
+            </h1>
+
+            <br /> Identifying Attributes
+            <Attributes.show
+              id="identifying_attrs"
+              data={convert_to_attrs(@agent.description.identifying_attributes)}
+            />
+            <br /> Non Identifying Attributes
+            <Attributes.show
+              id="nonidentifying_attrs"
+              data={convert_to_attrs(@agent.description.non_identifying_attributes)}
+            />
+          <% end %>
         </div>
         <div class="relative mt-6 flex-1 px-4 sm:px-6">
           <div id="editor" phx-update="ignore"></div>
           <textarea id="effective_config" phx-hook="EditorForm" class="hidden">
-          <%= if Map.has_key?(@config, :effective_config) && map_size(@config.effective_config.config_map.config_map) > 0 do %>
-              <%=@config.effective_config.config_map.config_map[""].body %>
+          <%= if Map.has_key?(@agent, :effective_config) && map_size(@agent.effective_config.config_map.config_map) > 0 do %>
+              <%=@agent.effective_config.config_map.config_map[""].body %>
           <% end %>
           </textarea>
         </div>
