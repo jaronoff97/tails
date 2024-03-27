@@ -1,7 +1,7 @@
 defmodule TailsWeb.TailLive.Index do
   use TailsWeb, :live_view
 
-  alias TailsWeb.Common.{Buttons, Slideover}
+  alias TailsWeb.Common.{Buttons, Slideover, Dropdown}
   alias Tails.{Telemetry, Agents, Filters}
   alias TailsWeb.Otel.{Attributes, ResourceData, DataViewer}
   @stream_limit 1000
@@ -45,6 +45,8 @@ defmodule TailsWeb.TailLive.Index do
      |> assign(:columns, @columns)
      |> assign(:custom_columns, MapSet.new([]))
      |> assign(:resource_columns, MapSet.new([]))
+     |> assign(:available_filters, %{})
+     |> assign(:available_resource_filters, %{})
      |> assign(:filters, %{})
      |> assign(:resource_filters, %{})
      |> assign(:remote_tap_started, false)
@@ -309,6 +311,7 @@ defmodule TailsWeb.TailLive.Index do
         get_records(data_type, message, socket.assigns.filters, socket.assigns.resource_filters)
 
       socket
+      |> assign_available_filters(records)
       |> stream(:data, records, at: -1, limit: -@stream_limit)
     else
       socket
@@ -322,6 +325,29 @@ defmodule TailsWeb.TailLive.Index do
         {true, _} -> resourceAcc ++ flatten_records(resourceRecord, stream_name, filters)
         {false, _} -> resourceAcc
       end
+    end)
+  end
+
+  defp assign_available_filters(socket, records) do
+    current_state = {socket.assigns.available_filters, socket.assigns.available_resource_filters}
+
+    {attributes, resource} =
+      Enum.reduce(records, current_state, fn record, {attributes, resource} ->
+        {update_kvs(record["attributes"], attributes), update_kvs(record["resource"], resource)}
+      end)
+
+    IO.inspect(attributes)
+    IO.inspect(resource)
+
+    socket
+    |> assign(:available_filters, attributes)
+    |> assign(:available_resource_filters, resource)
+  end
+
+  defp update_kvs(attrs, previous) do
+    Enum.reduce(attrs, previous, fn %{"key" => k, "value" => val}, acc ->
+      stringified = Telemetry.string_from_value(val)
+      Map.update(acc, k, MapSet.new([stringified]), fn ms -> MapSet.put(ms, stringified) end)
     end)
   end
 

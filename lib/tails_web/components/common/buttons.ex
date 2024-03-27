@@ -17,7 +17,7 @@ defmodule TailsWeb.Common.Buttons do
         <.icon icon={@icon} />
       <% end %>
     </button>
-    <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+    <span class="ms-3 text-sm font-medium text-gray-900 dark:text-slate-300">
       <%= @text %>
     </span>
     """
