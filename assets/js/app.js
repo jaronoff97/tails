@@ -24,16 +24,45 @@ import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
 
 import { EditorView, basicSetup } from "codemirror";
-import { EditorState } from "@codemirror/state";
+import { EditorState, Compartment } from "@codemirror/state";
 import * as yamlMode from "@codemirror/legacy-modes/mode/yaml";
+import { json } from "@codemirror/lang-json"
 import { StreamLanguage } from "@codemirror/language";
 
 const yaml = StreamLanguage.define(yamlMode.yaml);
+let language = new Compartment, tabSize = new Compartment
+
 let state = EditorState.create({
-  extensions: [basicSetup, yaml],
+  extensions: [basicSetup, yaml, language.of(json())],
 });
 
 hooks = {
+  DataViewer: {
+    updated() {
+      let textarea = this.el;
+      let content = textarea.value;
+      let new_state = this.view.state.update({
+        changes: { from: 0, to: this.view.state.doc.length, insert: content },
+      });
+      this.view.dispatch(new_state);
+    },
+    mounted() {
+      this.view = new EditorView({
+        doc: "data",
+        height: 100,
+        state: state,
+        parent: document.getElementById("data-viewer"),
+      });
+      let textarea = this.el;
+
+      // Initialise the editor with the content from the form's textarea
+      let content = textarea.value;
+      let new_state = this.view.state.update({
+        changes: { from: 0, to: this.view.state.doc.length, insert: content },
+      });
+      this.view.dispatch(new_state);
+    },
+  },
   EditorForm: {
     updated() {
       this.view = new EditorView({

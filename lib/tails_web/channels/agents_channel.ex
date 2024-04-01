@@ -2,10 +2,13 @@ defmodule TailsWeb.AgentsChannel do
   import Bitwise
   use TailsWeb, :channel
 
+  @heartbeat_interval 10_000
+
   @impl true
   def join("agents:" <> agent_id, payload, socket) do
     Tails.Agents.subscribe()
     # IO.puts("joinin")
+    # schedule_heartbeat(agent_id)
 
     server_to_agent =
       create_or_update(agent_id, payload)
@@ -31,6 +34,22 @@ defmodule TailsWeb.AgentsChannel do
     # IO.inspect(payload.remote_config_status)
     # IO.puts "------------ configmap pre-send"
     push(socket, "", server_to_agent)
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info({:heartbeat, agent_id}, socket) do
+    # IO.inspect("sending heartbeat")
+
+    server_to_agent = %Opamp.Proto.ServerToAgent{
+      instance_uid: agent_id,
+      capabilities: server_capabilities(),
+      # :ServerToAgentFlags_ReportFullState
+      flags: 1
+    }
+
+    push(socket, "", server_to_agent)
+    schedule_heartbeat(agent_id)
     {:noreply, socket}
   end
 
@@ -84,9 +103,9 @@ defmodule TailsWeb.AgentsChannel do
       capabilities: server_capabilities()
     }
 
-    # IO.puts "---------------"
-    # IO.inspect payload.remote_config_status
-    # IO.puts "---------------"
+    # IO.puts("---------------")
+    # IO.inspect(payload.remote_config_status)
+    # IO.puts("---------------")
     create_or_update(socket.assigns.agent_id, payload)
 
     {:reply, {:ok, server_to_agent}, socket}
@@ -150,6 +169,10 @@ defmodule TailsWeb.AgentsChannel do
           description: payload.agent_description
         })
     end
+  end
+
+  defp schedule_heartbeat(agent_id) do
+    Process.send_after(self(), {:heartbeat, agent_id}, @heartbeat_interval)
   end
 
   def generate_response({:ok, agent} = _agent) do
