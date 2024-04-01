@@ -66,6 +66,6 @@ defmodule Tails.Filters do
 
   defp apply_filter(value, filter) do
     {action, value_regex} = filter
-    {action, Regex.match?(Regex.compile!(value_regex), Telemetry.string_from_value(value))}
+    {action, Regex.match?(Regex.compile!("^#{value_regex}$"), Telemetry.string_from_value(value))}
   end
 end

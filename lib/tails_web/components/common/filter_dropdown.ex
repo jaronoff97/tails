@@ -72,7 +72,7 @@ defmodule TailsWeb.Common.FilterDropdown do
         <ul>
           <li :for={v <- filter_list(@values, @filter_string)}>
             <div class="block items-center p-2 pl-11 w-full text-base font-medium text-gray-900 rounded-lg transition duration-75 group dark:text-white ">
-              <div id={"#{@id}-filter"}>
+              <div>
                 <div class="space-y-6">
                   <div class="flex items-center">
                     <button

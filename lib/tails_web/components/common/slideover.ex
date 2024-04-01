@@ -73,7 +73,6 @@ defmodule TailsWeb.Common.Slideover do
                 phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
                 phx-key="escape"
                 phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
-                class="h-full"
               >
                 <div class="absolute left-0 top-0 -ml-8 flex pr-2 pt-4 sm:-ml-10 sm:pr-4">
                   <button
@@ -98,7 +97,7 @@ defmodule TailsWeb.Common.Slideover do
 
                 <div
                   id={"#{@id}-content"}
-                  class="flex h-full flex-col overflow-y-scroll bg-white py-6 shadow-xl"
+                  class="flex flex-col overflow-y-scroll bg-white py-6 shadow-xl"
                 >
                   <%= render_slot(@inner_block) %>
                 </div>

@@ -45,14 +45,8 @@ defmodule TailsWeb.TailLive.Index do
      |> assign(:columns, @columns)
      |> assign(:custom_columns, MapSet.new([]))
      |> assign(:resource_columns, MapSet.new([]))
-     |> assign(:available_filters, %{"net.peer.ip" => MapSet.new(["1.2.3.4", "test"])})
-     |> assign(:available_resource_filters, %{
-       "service.name" => MapSet.new(["spaningest"]),
-       "service.version" => MapSet.new(["0.4.0"]),
-       "telemetry.sdk.language" => MapSet.new(["python"]),
-       "telemetry.sdk.name" => MapSet.new(["opentelemetry"]),
-       "telemetry.sdk.version" => MapSet.new(["1.14.0"])
-     })
+     |> assign(:available_filters, %{})
+     |> assign(:available_resource_filters, %{})
      |> assign(:filters, %{})
      |> assign(:resource_filters, %{})
      |> assign(:remote_tap_started, false)
@@ -272,7 +266,7 @@ defmodule TailsWeb.TailLive.Index do
      |> assign(:remote_tap_started, false)}
   end
 
-  defp toggle_remote_tap(socket) do
+  defp toggle_remote_tap(socket) when socket.assigns.remote_tap_started == false do
     case Tails.RemoteTapClient.start_link([]) do
       {:ok, pid} ->
         {:ok,

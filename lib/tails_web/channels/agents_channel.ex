@@ -8,7 +8,7 @@ defmodule TailsWeb.AgentsChannel do
   def join("agents:" <> agent_id, payload, socket) do
     Tails.Agents.subscribe()
     # IO.puts("joinin")
-    schedule_heartbeat(agent_id)
+    # schedule_heartbeat(agent_id)
 
     server_to_agent =
       create_or_update(agent_id, payload)
@@ -21,7 +21,7 @@ defmodule TailsWeb.AgentsChannel do
 
   @impl true
   def handle_info({:request_config, _payload}, socket) do
-    IO.inspect("requesting config")
+    # IO.inspect("requesting config")
 
     server_to_agent = %Opamp.Proto.ServerToAgent{
       instance_uid: socket.assigns.agent_id,
