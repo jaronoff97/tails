@@ -1,6 +1,5 @@
 defmodule TailsWeb.Common.Dropdown do
   use Phoenix.Component
-  import TailsWeb.CoreComponents
   alias Phoenix.LiveView.JS
 
   attr(:id, :string, required: true)

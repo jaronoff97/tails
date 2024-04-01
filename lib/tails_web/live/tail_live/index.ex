@@ -1,7 +1,7 @@
 defmodule TailsWeb.TailLive.Index do
   use TailsWeb, :live_view
 
-  alias TailsWeb.Common.{Buttons, Slideover, Dropdown}
+  alias TailsWeb.Common.{Buttons, Slideover, FilterDropdown, Dropdown}
   alias Tails.{Telemetry, Agents, Filters}
   alias TailsWeb.Otel.{Attributes, ResourceData, DataViewer}
   @stream_limit 1000
@@ -118,6 +118,29 @@ defmodule TailsWeb.TailLive.Index do
   end
 
   @impl true
+  def handle_event(
+        "update_filters",
+        %{
+          "action" => action,
+          "filter_type" => filter_type_string,
+          "key" => key,
+          "val" => val,
+          "value" => _value
+        },
+        socket
+      ) do
+    {:noreply,
+     socket
+     |> update_filters(
+       filter_from_string(filter_type_string),
+       key,
+       String.to_atom(action),
+       val,
+       :add
+     )}
+  end
+
+  @impl true
   def handle_event("remove_column", %{"column" => column, "column_type" => column_type}, socket) do
     {:noreply,
      socket
@@ -133,33 +156,6 @@ defmodule TailsWeb.TailLive.Index do
      |> put_flash(:info, "filter removed, data reset")
      |> remove_filter(key, filter_type)
      |> stream(:data, [], reset: true)}
-  end
-
-  @impl true
-  def handle_event("attribute_filter", %{"action" => action, "key" => key, "val" => val}, socket) do
-    case action do
-      "column" ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "column added, data reset")
-         |> assign_columns(key)
-         |> stream(:data, [], reset: true)}
-
-      "include" ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "include filter added, data reset")
-         |> assign_filters(:include, key, val)}
-
-      "filter" ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "exclude filter added, data reset")
-         |> assign_filters(:exclude, key, val)}
-
-      "_" ->
-        {:noreply, socket}
-    end
   end
 
   @impl true
@@ -236,19 +232,23 @@ defmodule TailsWeb.TailLive.Index do
 
   defp assign_columns(socket, _key), do: socket
 
-  defp assign_filters(socket, action, key, val) when socket.assigns.modal_type == "resource" do
+  defp filter_from_string(filter_type_string) when filter_type_string == "resource",
+    do: :resource_filters
+
+  defp filter_from_string(filter_type_string) when filter_type_string == "attributes",
+    do: :filters
+
+  defp update_filters(socket, filter_type, key, action, val, :add) do
     socket
-    |> assign(:resource_filters, Map.put(socket.assigns.resource_filters, key, {action, val}))
+    |> assign(filter_type, Map.put(socket.assigns[filter_type], key, {action, val}))
     |> stream(:data, [], reset: true)
   end
 
-  defp assign_filters(socket, action, key, val) when socket.assigns.modal_type == "attributes" do
+  defp update_filters(socket, filter_type, key, _action, _val, :remove) do
     socket
-    |> assign(:filters, Map.put(socket.assigns.filters, key, {action, val}))
+    |> assign(filter_type, Map.delete(socket.assigns[filter_type], key))
     |> stream(:data, [], reset: true)
   end
-
-  defp assign_filters(socket, _action, _key, _val), do: socket
 
   defp request_new_config(socket) do
     if !Map.has_key?(socket.assigns.agent, :effective_config) do
@@ -401,5 +401,10 @@ defmodule TailsWeb.TailLive.Index do
         IO.puts("unable to retrieve value for type #{other}")
         ""
     end
+  end
+
+  # This is a shameful hack because apparently dots in ids are a no no?
+  defp generate_id_from_key(key) do
+    String.replace(key, ".", "-")
   end
 end

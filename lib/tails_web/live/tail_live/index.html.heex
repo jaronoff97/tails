@@ -266,31 +266,14 @@
                   </:button>
 
                   <:item :for={{k, values} <- @available_filters} id={"#{k}-attr-item"}>
-                    <button
-                      type="button"
-                      class="flex w-full items-center justify-between bg-white px-2 py-3 text-gray-400 hover:text-gray-500"
-                      aria-controls="filter-section-mobile-0"
-                      aria-expanded="false"
-                    >
-                      <span class="font-medium text-gray-900"><%= k %></span>
-                    </button>
-                    <div id={"#{k}-attr-filter"}>
-                      <div :for={v <- values} class="space-y-6">
-                        <div class="flex items-center">
-                          <input
-                            id={"#{k}-#{v}-attr-filter"}
-                            type="checkbox"
-                            class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                          />
-                          <label
-                            for={"#{k}-#{v}-attr-filter-label"}
-                            class="ml-3 min-w-0 flex-1 text-gray-500"
-                          >
-                            <%= v %>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
+                    <.live_component
+                      module={FilterDropdown}
+                      id={"#{generate_id_from_key(k)}-attribute-filter-dropdown"}
+                      key={k}
+                      values={values}
+                      button_title={k}
+                      filter_type="attributes"
+                    />
                   </:item>
                 </Dropdown.dropdown>
               </li>
@@ -304,31 +287,14 @@
                     :for={{k, values} <- @available_resource_filters}
                     id={"#{k}-resource-item"}
                   >
-                    <button
-                      type="button"
-                      class="flex w-full items-center justify-between bg-white px-2 py-3 text-gray-400 hover:text-gray-500"
-                      aria-controls="filter-section-mobile-0"
-                      aria-expanded="false"
-                    >
-                      <span class="font-medium text-gray-900"><%= k %></span>
-                    </button>
-                    <div id={"#{k}-resource-filter"}>
-                      <div :for={v <- values} class="space-y-6">
-                        <div class="flex items-center">
-                          <input
-                            id={"#{k}-#{v}-resource-filter"}
-                            type="checkbox"
-                            class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                          />
-                          <label
-                            for={"#{k}-#{v}-resource-filter"}
-                            class="ml-3 min-w-0 flex-1 text-gray-500"
-                          >
-                            <%= v %>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
+                    <.live_component
+                      module={FilterDropdown}
+                      id={"#{generate_id_from_key(k)}-resource-filter-dropdown"}
+                      key={k}
+                      values={values}
+                      button_title={k}
+                      filter_type="resource"
+                    />
                   </:item>
                 </Dropdown.dropdown>
               </li>
