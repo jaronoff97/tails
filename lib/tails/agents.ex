@@ -17,17 +17,8 @@ defmodule Tails.Agents do
     {:ok, agent}
   end
 
-<<<<<<< Updated upstream
-  def get_agent(_id), do: nil
-
-  def request_latest_config do
-    # IO.puts("requesting!!!")
-    Phoenix.PubSub.broadcast(Tails.PubSub, "agents", {:request_config, %{}})
-  end
-=======
   def request_latest_config,
     do: Phoenix.PubSub.broadcast(Tails.PubSub, "agents", {:request_config, %{}})
->>>>>>> Stashed changes
 
   @doc """
   Creates a agent.

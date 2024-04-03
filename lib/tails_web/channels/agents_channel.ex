@@ -103,17 +103,7 @@ defmodule TailsWeb.AgentsChannel do
       capabilities: server_capabilities()
     }
 
-<<<<<<< Updated upstream
-    # IO.puts("---------------")
-    # IO.inspect(payload.remote_config_status)
-    # IO.puts("---------------")
-    create_or_update(socket.assigns.agent_id, payload)
-=======
-    # IO.puts "---------------"
-    # IO.inspect payload.remote_config_status
-    # IO.puts "---------------"
     create_agent(socket.assigns.agent_id, payload)
->>>>>>> Stashed changes
 
     {:reply, {:ok, server_to_agent}, socket}
   end
