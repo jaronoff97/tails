@@ -2,7 +2,11 @@ name: Elixir CI
 
 on:
   pull_request:
-    types: [ready_for_review]
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
   push:
     branches:
       - "/refs/heads/*"
