@@ -11,7 +11,7 @@ defmodule TailsWeb.AgentsChannel do
     # schedule_heartbeat(agent_id)
 
     server_to_agent =
-      create_or_update(agent_id, payload)
+      create_agent(agent_id, payload)
       |> generate_response
 
     {:ok, server_to_agent,
@@ -103,10 +103,17 @@ defmodule TailsWeb.AgentsChannel do
       capabilities: server_capabilities()
     }
 
+<<<<<<< Updated upstream
     # IO.puts("---------------")
     # IO.inspect(payload.remote_config_status)
     # IO.puts("---------------")
     create_or_update(socket.assigns.agent_id, payload)
+=======
+    # IO.puts "---------------"
+    # IO.inspect payload.remote_config_status
+    # IO.puts "---------------"
+    create_agent(socket.assigns.agent_id, payload)
+>>>>>>> Stashed changes
 
     {:reply, {:ok, server_to_agent}, socket}
   end
@@ -150,25 +157,14 @@ defmodule TailsWeb.AgentsChannel do
     end
   end
 
-  def create_or_update(agent_id, payload) do
-    case Tails.Agents.get_agent(agent_id) do
-      nil ->
-        Tails.Agents.create_agent(%{
-          id: agent_id,
-          effective_config: payload.effective_config,
-          remote_config_status: payload.remote_config_status,
-          component_health: payload.health,
-          description: payload.agent_description
-        })
-
-      agent ->
-        Tails.Agents.update_agent(agent, %{
-          effective_config: payload.effective_config,
-          remote_config_status: payload.remote_config_status,
-          component_health: payload.health,
-          description: payload.agent_description
-        })
-    end
+  def create_agent(agent_id, payload) do
+    Tails.Agents.create_agent(%{
+      id: agent_id,
+      effective_config: payload.effective_config,
+      remote_config_status: payload.remote_config_status,
+      component_health: payload.health,
+      description: payload.agent_description
+    })
   end
 
   defp schedule_heartbeat(agent_id) do
@@ -176,14 +172,6 @@ defmodule TailsWeb.AgentsChannel do
   end
 
   def generate_response({:ok, agent} = _agent) do
-    %Opamp.Proto.ServerToAgent{
-      instance_uid: agent.id,
-      capabilities: server_capabilities()
-    }
-  end
-
-  def generate_response({:error, agent} = _agent) do
-    # Todo: use the error for something
     %Opamp.Proto.ServerToAgent{
       instance_uid: agent.id,
       capabilities: server_capabilities()

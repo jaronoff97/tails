@@ -11,20 +11,23 @@ defmodule Tails.Agents do
     Phoenix.PubSub.subscribe(Tails.PubSub, "agents:" <> agent_id)
   end
 
-  defp broadcast({:error, _reason} = error, _event), do: error
-
   defp broadcast({:ok, agent}, event) do
     Phoenix.PubSub.broadcast(Tails.PubSub, "agents", {event, agent})
     Phoenix.PubSub.broadcast(Tails.PubSub, "agents:" <> agent.id, {event, agent})
     {:ok, agent}
   end
 
+<<<<<<< Updated upstream
   def get_agent(_id), do: nil
 
   def request_latest_config do
     # IO.puts("requesting!!!")
     Phoenix.PubSub.broadcast(Tails.PubSub, "agents", {:request_config, %{}})
   end
+=======
+  def request_latest_config,
+    do: Phoenix.PubSub.broadcast(Tails.PubSub, "agents", {:request_config, %{}})
+>>>>>>> Stashed changes
 
   @doc """
   Creates a agent.
@@ -40,6 +43,7 @@ defmodule Tails.Agents do
   """
   def create_agent(attrs \\ %{}) do
     broadcast({:ok, attrs}, :agent_created)
+    {:ok, attrs}
   end
 
   @doc """

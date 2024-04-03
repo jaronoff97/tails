@@ -12,7 +12,8 @@ defmodule Tails.MixProject do
       deps: deps(),
       dialyzer: [
         # Put the project-level PLT in the priv/ directory (instead of the default _build/ location)
-        plt_file: {:no_warn, "priv/plts/project.plt"}
+        plt_file: {:no_warn, "priv/plts/project.plt"},
+        plt_add_apps: [:ex_unit]
       ]
     ]
   end

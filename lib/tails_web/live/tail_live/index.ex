@@ -144,12 +144,21 @@ defmodule TailsWeb.TailLive.Index do
   end
 
   @impl true
-  def handle_event("remove_attr_filter", %{"key" => key, "filter_type" => filter_type}, socket) do
+  def handle_event(
+        "remove_attr_filter",
+        %{"key" => key, "filter_type" => filter_type_string},
+        socket
+      ) do
     {:noreply,
      socket
      |> put_flash(:info, "filter removed, data reset")
-     |> remove_filter(key, filter_type)
-     |> stream(:data, [], reset: true)}
+     |> update_filters(
+       filter_from_string(filter_type_string),
+       key,
+       nil,
+       nil,
+       :remove
+     )}
   end
 
   @impl true
@@ -209,14 +218,6 @@ defmodule TailsWeb.TailLive.Index do
     do: assign(socket, :resource_columns, MapSet.delete(socket.assigns.resource_columns, column))
 
   defp remove_column(socket, _column, _column_type), do: socket
-
-  defp remove_filter(socket, key, filter_type) when filter_type == "attributes",
-    do: assign(socket, :filters, Map.delete(socket.assigns.filters, key))
-
-  defp remove_filter(socket, key, filter_type) when filter_type == "resource",
-    do: assign(socket, :resource_filters, Map.delete(socket.assigns.resource_filters, key))
-
-  defp remove_filter(socket, _key, _filter_type), do: socket
 
   defp assign_columns(socket, key) when socket.assigns.modal_type == "resource",
     do: assign(socket, :resource_columns, MapSet.put(socket.assigns.resource_columns, key))
