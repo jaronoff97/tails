@@ -32,8 +32,13 @@ defmodule TailsWeb.TailLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    if connected?(socket), do: Telemetry.subscribe()
-    if connected?(socket), do: Agents.subscribe()
+    if connected?(socket) do
+      :ok = Telemetry.subscribe()
+    end
+
+    if connected?(socket) do
+      :ok = Agents.subscribe()
+    end
 
     {:ok,
      socket
@@ -91,7 +96,7 @@ defmodule TailsWeb.TailLive.Index do
 
   @impl true
   def handle_event("request_config", _value, socket) do
-    request_new_config(socket)
+    :ok = request_new_config(socket)
     {:noreply, socket}
   end
 
@@ -248,6 +253,8 @@ defmodule TailsWeb.TailLive.Index do
   defp request_new_config(socket) do
     if !Map.has_key?(socket.assigns.agent, :effective_config) do
       Agents.request_latest_config()
+    else
+      :ok
     end
   end
 
