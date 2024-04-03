@@ -6,12 +6,19 @@ defmodule TailsWeb.AgentsChannel do
 
   @impl true
   def join("agents:" <> agent_id, payload, socket) do
-    Tails.Agents.subscribe()
+    case Tails.Agents.subscribe() do
+      :ok ->
+        IO.puts("Subscribed to agents channel")
+
+      {:error, reason} ->
+        IO.puts("Failed to subscribe, reason: #{inspect(reason)}")
+    end
+
     # IO.puts("joinin")
     # schedule_heartbeat(agent_id)
 
     server_to_agent =
-      create_or_update(agent_id, payload)
+      connect_to_agent(agent_id, payload)
       |> generate_response
 
     {:ok, server_to_agent,
@@ -103,10 +110,7 @@ defmodule TailsWeb.AgentsChannel do
       capabilities: server_capabilities()
     }
 
-    # IO.puts("---------------")
-    # IO.inspect(payload.remote_config_status)
-    # IO.puts("---------------")
-    create_or_update(socket.assigns.agent_id, payload)
+    {:ok, _} = connect_to_agent(socket.assigns.agent_id, payload)
 
     {:reply, {:ok, server_to_agent}, socket}
   end
@@ -115,7 +119,7 @@ defmodule TailsWeb.AgentsChannel do
   # broadcast to everyone in the current topic (agents:lobby).
   @impl true
   def handle_in("shout", payload, socket) do
-    broadcast(socket, "shout", payload)
+    :ok = broadcast(socket, "shout", payload)
     {:noreply, socket}
   end
 
@@ -135,40 +139,19 @@ defmodule TailsWeb.AgentsChannel do
         IO.inspect(other)
     end
 
-    delete(socket.assigns.agent_id)
+    # Tails.Agents.delete_agent(socket.assigns.agent_id)
+    TailsWeb.OpAMPSerializer.remove(socket.assigns.agent_id)
     {:shutdown, socket.assigns.agent_id}
   end
 
-  defp delete(agent_id) do
-    case Tails.Agents.get_agent(agent_id) do
-      nil ->
-        {:error, "not found"}
-
-      agent ->
-        TailsWeb.OpAMPSerializer.remove(agent_id)
-        Tails.Agents.delete_agent(agent)
-    end
-  end
-
-  def create_or_update(agent_id, payload) do
-    case Tails.Agents.get_agent(agent_id) do
-      nil ->
-        Tails.Agents.create_agent(%{
-          id: agent_id,
-          effective_config: payload.effective_config,
-          remote_config_status: payload.remote_config_status,
-          component_health: payload.health,
-          description: payload.agent_description
-        })
-
-      agent ->
-        Tails.Agents.update_agent(agent, %{
-          effective_config: payload.effective_config,
-          remote_config_status: payload.remote_config_status,
-          component_health: payload.health,
-          description: payload.agent_description
-        })
-    end
+  def connect_to_agent(agent_id, payload) do
+    Tails.Agents.create_agent(%{
+      id: agent_id,
+      effective_config: payload.effective_config,
+      remote_config_status: payload.remote_config_status,
+      component_health: payload.health,
+      description: payload.agent_description
+    })
   end
 
   defp schedule_heartbeat(agent_id) do
@@ -176,14 +159,6 @@ defmodule TailsWeb.AgentsChannel do
   end
 
   def generate_response({:ok, agent} = _agent) do
-    %Opamp.Proto.ServerToAgent{
-      instance_uid: agent.id,
-      capabilities: server_capabilities()
-    }
-  end
-
-  def generate_response({:error, agent} = _agent) do
-    # Todo: use the error for something
     %Opamp.Proto.ServerToAgent{
       instance_uid: agent.id,
       capabilities: server_capabilities()

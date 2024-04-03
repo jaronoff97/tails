@@ -11,20 +11,16 @@ defmodule Tails.Agents do
     Phoenix.PubSub.subscribe(Tails.PubSub, "agents:" <> agent_id)
   end
 
-  defp broadcast({:error, _reason} = error, _event), do: error
-
+  @spec broadcast({:ok, map}, atom) :: {:ok, map}
   defp broadcast({:ok, agent}, event) do
-    Phoenix.PubSub.broadcast(Tails.PubSub, "agents", {event, agent})
-    Phoenix.PubSub.broadcast(Tails.PubSub, "agents:" <> agent.id, {event, agent})
+    :ok = Phoenix.PubSub.broadcast(Tails.PubSub, "agents", {event, agent})
+    :ok = Phoenix.PubSub.broadcast(Tails.PubSub, "agents:" <> agent.id, {event, agent})
     {:ok, agent}
   end
 
-  def get_agent(_id), do: nil
-
-  def request_latest_config do
-    # IO.puts("requesting!!!")
-    Phoenix.PubSub.broadcast(Tails.PubSub, "agents", {:request_config, %{}})
-  end
+  @spec request_latest_config() :: :ok | {:error, term()}
+  def request_latest_config,
+    do: Phoenix.PubSub.broadcast(Tails.PubSub, "agents", {:request_config, %{}})
 
   @doc """
   Creates a agent.
@@ -32,13 +28,11 @@ defmodule Tails.Agents do
   ## Examples
 
       iex> create_agent(%{field: value})
-      {:ok, %Agent{}}
-
-      iex> create_agent(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
+      {:ok, %{}}
 
   """
-  def create_agent(attrs \\ %{}) do
+  @spec create_agent(map) :: {:ok, map}
+  def create_agent(attrs) do
     broadcast({:ok, attrs}, :agent_created)
   end
 

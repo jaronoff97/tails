@@ -1,6 +1,9 @@
 /config/*.secret.exs
 .elixir_ls/
 
+/priv/plts/*.plt
+/priv/plts/*.plt.hash
+
 # The directory Mix will write compiled artifacts to.
 /_build/
 

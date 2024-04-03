@@ -36,7 +36,6 @@ if config_env() == :prod do
   host = System.get_env("PHX_HOST") || "example.com"
   port = String.to_integer(System.get_env("PORT") || "4000")
 
-
   config :tails, TailsWeb.UserSocket, check_origin: :conn
 
   config :tails, TailsWeb.Endpoint,
@@ -83,5 +82,4 @@ if config_env() == :prod do
   #       force_ssl: [hsts: true]
   #
   # Check `Plug.SSL` for all available options in `force_ssl`.
-
 end

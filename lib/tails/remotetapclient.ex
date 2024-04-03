@@ -47,11 +47,20 @@ defmodule Tails.RemoteTapClient do
     # IO.puts("Received Message -- Message: #{inspect(msg)}")
 
     case Jason.decode(msg) do
-      {:ok, parsed} -> Tails.Telemetry.new_message(parsed)
-      {:error, err} -> IO.puts("error: #{err}")
-    end
+      {:ok, parsed} ->
+        case Tails.Telemetry.new_message(parsed) do
+          {:ok, _message} ->
+            {:ok, state}
 
-    {:ok, state}
+          {:error, reason} ->
+            IO.puts("failed to create new message: #{inspect(reason)}")
+            {:close, state}
+        end
+
+      {:error, reason} ->
+        IO.puts("failed to decode message: #{inspect(reason)}")
+        {:close, state}
+    end
   end
 
   def handle_cast({:send, {type, msg} = frame}, state) do
