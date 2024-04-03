@@ -32,6 +32,21 @@ jobs:
           otp-version: ${{matrix.otp}}
           elixir-version: ${{matrix.elixir}}
 
+      - name: Restore dependencies cache
+        uses: actions/cache@v4
+        env:
+          cache-name: cache-elixir-deps
+        with:
+          path: deps
+          key: ${{ runner.os }}-mix-${{ env.cache-name }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-${{ env.cache-name }}-
+
+      # Step: Download project dependencies. If unchanged, uses
+      # the cached version.
+      - name: Install dependencies
+        run: mix deps.get
+
       # Cache key based on Erlang/Elixir version and the mix.lock hash
       - name: Restore PLT cache
         id: plt_cache
