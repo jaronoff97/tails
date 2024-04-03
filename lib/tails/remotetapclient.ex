@@ -57,7 +57,8 @@ defmodule Tails.RemoteTapClient do
             {:close, state}
         end
 
-      {:error, err} ->
+      {:error, reason} ->
+        IO.puts("failed to decode message: #{inspect(reason)}")
         {:close, state}
     end
   end

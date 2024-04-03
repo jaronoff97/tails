@@ -118,6 +118,23 @@ defmodule TailsWeb.TailLive.Index do
 
   @impl true
   def handle_event(
+        "update_columns",
+        %{
+          "column_type" => column_type_string,
+          "key" => key
+        },
+        socket
+      ) do
+    {:noreply,
+     socket
+     |> update_columns(
+       column_from_string(column_type_string),
+       key
+     )}
+  end
+
+  @impl true
+  def handle_event(
         "update_filters",
         %{
           "action" => action,
@@ -237,6 +254,18 @@ defmodule TailsWeb.TailLive.Index do
 
   defp filter_from_string(filter_type_string) when filter_type_string == "attributes",
     do: :filters
+
+  defp column_from_string(column_type_string) when column_type_string == "resource",
+    do: :resource_columns
+
+  defp column_from_string(column_type_string) when column_type_string == "attributes",
+    do: :custom_columns
+
+  defp update_columns(socket, column_type, key) do
+    socket
+    |> assign(column_type, MapSet.put(socket.assigns[column_type], key))
+    |> stream(:data, [], reset: true)
+  end
 
   defp update_filters(socket, filter_type, key, action, val, :add) do
     socket

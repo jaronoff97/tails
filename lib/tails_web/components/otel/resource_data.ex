@@ -32,7 +32,7 @@ defmodule TailsWeb.Otel.ResourceData do
   end
 
   def get_attribute_value(data, accessor, key) do
-    IO.inspect(data)
+    # IO.inspect(data)
 
     data[accessor]
     |> Enum.find(%{}, fn attribute -> attribute["key"] == key end)
