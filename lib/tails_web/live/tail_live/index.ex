@@ -129,7 +129,8 @@ defmodule TailsWeb.TailLive.Index do
      socket
      |> update_columns(
        column_from_string(column_type_string),
-       key
+       key,
+       :add
      )}
   end
 
@@ -157,12 +158,15 @@ defmodule TailsWeb.TailLive.Index do
   end
 
   @impl true
-  def handle_event("remove_column", %{"column" => column, "column_type" => column_type}, socket) do
+  def handle_event(
+        "remove_column",
+        %{"column" => column, "column_type" => column_type_string},
+        socket
+      ) do
     {:noreply,
      socket
      |> put_flash(:info, "column removed, data reset")
-     |> remove_column(column, column_type)
-     |> stream(:data, [], reset: true)}
+     |> update_columns(column_from_string(column_type_string), column, :remove)}
   end
 
   @impl true
@@ -233,22 +237,6 @@ defmodule TailsWeb.TailLive.Index do
     end
   end
 
-  defp remove_column(socket, column, column_type) when column_type == "attributes",
-    do: assign(socket, :custom_columns, MapSet.delete(socket.assigns.custom_columns, column))
-
-  defp remove_column(socket, column, column_type) when column_type == "resource",
-    do: assign(socket, :resource_columns, MapSet.delete(socket.assigns.resource_columns, column))
-
-  defp remove_column(socket, _column, _column_type), do: socket
-
-  defp assign_columns(socket, key) when socket.assigns.modal_type == "resource",
-    do: assign(socket, :resource_columns, MapSet.put(socket.assigns.resource_columns, key))
-
-  defp assign_columns(socket, key) when socket.assigns.modal_type == "attributes",
-    do: assign(socket, :custom_columns, MapSet.put(socket.assigns.custom_columns, key))
-
-  defp assign_columns(socket, _key), do: socket
-
   defp filter_from_string(filter_type_string) when filter_type_string == "resource",
     do: :resource_filters
 
@@ -261,9 +249,15 @@ defmodule TailsWeb.TailLive.Index do
   defp column_from_string(column_type_string) when column_type_string == "attributes",
     do: :custom_columns
 
-  defp update_columns(socket, column_type, key) do
+  defp update_columns(socket, column_type, key, :add) do
     socket
     |> assign(column_type, MapSet.put(socket.assigns[column_type], key))
+    |> stream(:data, [], reset: true)
+  end
+
+  defp update_columns(socket, column_type, key, :remove) do
+    socket
+    |> assign(column_type, MapSet.delete(socket.assigns[column_type], key))
     |> stream(:data, [], reset: true)
   end
 
