@@ -1,8 +1,9 @@
 defmodule TailsWeb.TailLive.Index do
   use TailsWeb, :live_view
 
+  alias TailsWeb.Common.{Buttons, Slideover, FilterDropdown, Dropdown}
   alias Tails.{Telemetry, Agents, Filters}
-  alias TailsWeb.Otel.{Attributes, ResourceData}
+  alias TailsWeb.Otel.{Attributes, ResourceData, DataViewer}
   @stream_limit 1000
 
   @columns %{
@@ -39,10 +40,13 @@ defmodule TailsWeb.TailLive.Index do
      |> stream(:data, [], at: -1, limit: -@stream_limit)
      |> assign(:modal_attributes, %{})
      |> assign(:modal_type, "attributes")
-     |> assign(:config, %{})
+     |> assign(:active_raw_data, %{})
+     |> assign(:agent, %{})
      |> assign(:columns, @columns)
      |> assign(:custom_columns, MapSet.new([]))
      |> assign(:resource_columns, MapSet.new([]))
+     |> assign(:available_filters, %{})
+     |> assign(:available_resource_filters, %{})
      |> assign(:filters, %{})
      |> assign(:resource_filters, %{})
      |> assign(:remote_tap_started, false)
@@ -71,8 +75,7 @@ defmodule TailsWeb.TailLive.Index do
     # JS.toggle(to: "#menu", in: "fade-in-scale", out: "fade-out-scale")
     {:noreply,
      socket
-     |> push_event("reset", %{})
-     |> push_event("js-exec", %{to: "#menu", attr: "data-show"})}
+     |> push_event("js-exec", %{to: "#collector", attr: "data-show"})}
   end
 
   @impl true
@@ -93,28 +96,49 @@ defmodule TailsWeb.TailLive.Index do
   end
 
   @impl true
-  def handle_event("attribute_clicked", value, socket) do
+  def handle_event("slideover_cancel", _value, socket) do
     {:noreply,
      socket
-     |> assign(:modal_attributes, value["attributes"])
-     |> assign(:modal_type, "attributes")
-     |> push_event("js-exec", %{to: "#attribute-modal", attr: "data-show"})}
+     |> push_event("js-exec", %{to: "#menu", attr: "data-cancel"})
+     |> assign(:active_raw_data, %{})}
   end
 
   @impl true
-  def handle_event("resource_attribute_clicked", value, socket) do
+  def handle_event("row_clicked", value, socket) do
     {:noreply,
      socket
-     |> assign(:modal_attributes, value["resource"])
-     |> assign(:modal_type, "resource")
-     |> push_event("js-exec", %{to: "#attribute-modal", attr: "data-show"})}
+     |> assign(:active_raw_data, value)
+     |> push_event("js-exec", %{to: "#row-data", attr: "data-show"})}
+  end
+
+  @impl true
+  def handle_event(
+        "update_filters",
+        %{
+          "action" => action,
+          "filter_type" => filter_type_string,
+          "key" => key,
+          "val" => val,
+          "value" => _value
+        },
+        socket
+      ) do
+    {:noreply,
+     socket
+     |> update_filters(
+       filter_from_string(filter_type_string),
+       key,
+       String.to_atom(action),
+       val,
+       :add
+     )}
   end
 
   @impl true
   def handle_event("remove_column", %{"column" => column, "column_type" => column_type}, socket) do
     {:noreply,
      socket
-     |> put_flash(:error, "column removed, data reset")
+     |> put_flash(:info, "column removed, data reset")
      |> remove_column(column, column_type)
      |> stream(:data, [], reset: true)}
   end
@@ -129,33 +153,6 @@ defmodule TailsWeb.TailLive.Index do
   end
 
   @impl true
-  def handle_event("attribute_filter", %{"action" => action, "key" => key, "val" => val}, socket) do
-    case action do
-      "column" ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "column added, data reset")
-         |> assign_columns(key)
-         |> stream(:data, [], reset: true)}
-
-      "include" ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "include filter added, data reset")
-         |> assign_filters(:include, key, val)}
-
-      "filter" ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "exclude filter added, data reset")
-         |> assign_filters(:exclude, key, val)}
-
-      "_" ->
-        {:noreply, socket}
-    end
-  end
-
-  @impl true
   def handle_params(params, _url, socket) do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
@@ -164,24 +161,24 @@ defmodule TailsWeb.TailLive.Index do
   def handle_info({:agent_deleted, _message}, socket) do
     {:noreply,
      socket
-     |> assign(:config, %{})}
+     |> assign(:agent, %{})}
   end
 
   @impl true
   def handle_info({:agent_updated, message}, socket) do
     {:noreply,
      socket
-     |> assign(:config, message)}
+     |> assign(:agent, message)}
   end
 
   @impl true
   def handle_info({:agent_created, message}, socket) do
     if socket.assigns.remote_tap_started do
-      {:noreply, assign(socket, :config, message)}
+      {:noreply, assign(socket, :agent, message)}
     else
       case toggle_remote_tap(socket) do
         {:ok, socket} ->
-          {:noreply, assign(socket, :config, message)}
+          {:noreply, assign(socket, :agent, message)}
 
         {:error, socket} ->
           {:noreply, socket}
@@ -229,22 +226,26 @@ defmodule TailsWeb.TailLive.Index do
 
   defp assign_columns(socket, _key), do: socket
 
-  defp assign_filters(socket, action, key, val) when socket.assigns.modal_type == "resource" do
+  defp filter_from_string(filter_type_string) when filter_type_string == "resource",
+    do: :resource_filters
+
+  defp filter_from_string(filter_type_string) when filter_type_string == "attributes",
+    do: :filters
+
+  defp update_filters(socket, filter_type, key, action, val, :add) do
     socket
-    |> assign(:resource_filters, Map.put(socket.assigns.resource_filters, key, {action, val}))
+    |> assign(filter_type, Map.put(socket.assigns[filter_type], key, {action, val}))
     |> stream(:data, [], reset: true)
   end
 
-  defp assign_filters(socket, action, key, val) when socket.assigns.modal_type == "attributes" do
+  defp update_filters(socket, filter_type, key, _action, _val, :remove) do
     socket
-    |> assign(:filters, Map.put(socket.assigns.filters, key, {action, val}))
+    |> assign(filter_type, Map.delete(socket.assigns[filter_type], key))
     |> stream(:data, [], reset: true)
   end
-
-  defp assign_filters(socket, _action, _key, _val), do: socket
 
   defp request_new_config(socket) do
-    if !Map.has_key?(socket.assigns.config, :effective_config) do
+    if !Map.has_key?(socket.assigns.agent, :effective_config) do
       Agents.request_latest_config()
     end
   end
@@ -265,7 +266,7 @@ defmodule TailsWeb.TailLive.Index do
      |> assign(:remote_tap_started, false)}
   end
 
-  defp toggle_remote_tap(socket) do
+  defp toggle_remote_tap(socket) when socket.assigns.remote_tap_started == false do
     case Tails.RemoteTapClient.start_link([]) do
       {:ok, pid} ->
         {:ok,
@@ -284,6 +285,7 @@ defmodule TailsWeb.TailLive.Index do
         get_records(data_type, message, socket.assigns.filters, socket.assigns.resource_filters)
 
       socket
+      |> assign_available_filters(records)
       |> stream(:data, records, at: -1, limit: -@stream_limit)
     else
       socket
@@ -300,6 +302,26 @@ defmodule TailsWeb.TailLive.Index do
     end)
   end
 
+  defp assign_available_filters(socket, records) do
+    current_state = {socket.assigns.available_filters, socket.assigns.available_resource_filters}
+
+    {attributes, resource} =
+      Enum.reduce(records, current_state, fn record, {attributes, resource} ->
+        {update_kvs(record["attributes"], attributes), update_kvs(record["resource"], resource)}
+      end)
+
+    socket
+    |> assign(:available_filters, attributes)
+    |> assign(:available_resource_filters, resource)
+  end
+
+  defp update_kvs(attrs, previous) do
+    Enum.reduce(attrs, previous, fn %{"key" => k, "value" => val}, acc ->
+      stringified = Telemetry.string_from_value(val)
+      Map.update(acc, k, MapSet.new([stringified]), fn ms -> MapSet.put(ms, stringified) end)
+    end)
+  end
+
   defp flatten_records(resourceRecord, stream_name, filters) do
     resourceRecord[scope_accessor(stream_name)]
     |> Enum.flat_map(fn scopeRecord ->
@@ -308,7 +330,7 @@ defmodule TailsWeb.TailLive.Index do
         item
         |> Map.put_new(:id, UUID.uuid4())
         |> normalize()
-        |> Map.put_new("resource", resourceRecord["resource"]["attributes"])
+        |> Map.put_new("resource", Map.get(resourceRecord["resource"], "attributes", []))
         |> keep_record?(filters)
         |> append_record?(acc)
       end)
@@ -318,8 +340,14 @@ defmodule TailsWeb.TailLive.Index do
   defp append_record?({true, record}, acc), do: acc ++ [record]
   defp append_record?({false, _record}, acc), do: acc
 
-  defp keep_record?(record, filters),
-    do: {Filters.keep_record(record["attributes"], filters), record}
+  defp keep_record?(%{"attributes" => attributes} = record, filters),
+    do: {Filters.keep_record(attributes, filters), record}
+
+  defp keep_record?(%{} = record, filters),
+    do: {Filters.keep_record([], filters), record}
+
+  defp keep_record?(_, filters),
+    do: {Filters.keep_record([], filters), %{}}
 
   defp resource_accessor(stream_name),
     do: "resource#{String.capitalize(Atom.to_string(stream_name))}"
@@ -347,6 +375,30 @@ defmodule TailsWeb.TailLive.Index do
 
   defp get_attributes_from_metric(data_points) do
     data_points
-    |> Enum.reduce([], fn point, acc -> point["attributes"] ++ acc end)
+    |> Enum.reduce([], fn point, acc -> Map.get(point, "attributes", []) ++ acc end)
+  end
+
+  defp convert_to_attrs(opamp_attrs) do
+    Enum.reduce(opamp_attrs, [], fn kv, acc ->
+      acc ++ [%{"key" => kv.key, "value" => %{"stringValue" => get_value(kv)}}]
+    end)
+  end
+
+  defp get_value(nil), do: ""
+
+  defp get_value(kv) do
+    case kv.value.value do
+      {:string_value, v} ->
+        v
+
+      {other, _v} ->
+        IO.puts("unable to retrieve value for type #{other}")
+        ""
+    end
+  end
+
+  # This is a shameful hack because apparently dots in ids are a no no?
+  defp generate_id_from_key(key) do
+    String.replace(key, ".", "-")
   end
 end

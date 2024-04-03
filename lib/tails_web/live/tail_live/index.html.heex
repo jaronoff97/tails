@@ -17,51 +17,19 @@
     <div class="flex items-center gap-4 font-semibold leading-6 text-zinc-900">
       <label class="inline-flex items-center me-5 cursor-pointer">
         <%= if @should_stream do %>
-          <button phx-click="toggle_stream">
-            <svg
-              class="w-[20px] h-[20px] text-gray-800 stroke-black"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10 9v6m4-6v6m7-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-              />
-            </svg>
-          </button>
-          <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
-            Streaming
-          </span>
+          <Buttons.navbar_button
+            id="active-stream"
+            phx_click="toggle_stream"
+            text="Streaming"
+            icon={:play}
+          />
         <% else %>
-          <button phx-click="toggle_stream">
-            <svg
-              class="w-[20px] h-[20px] text-gray-800  stroke-black"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M8 18V6l8 6-8 6Z"
-              />
-            </svg>
-          </button>
-          <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
-            Paused
-          </span>
+          <Buttons.navbar_button
+            id="paused-stream"
+            phx_click="toggle_stream"
+            text="Paused"
+            icon={:pause}
+          />
         <% end %>
       </label>
       <label class="inline-flex items-center me-5 cursor-pointer">
@@ -78,63 +46,26 @@
           Toggle Remote Tap
         </span>
       </label>
-      <div>
-        <%= if Map.has_key?(@config, :id) do %>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="#29E41B"
-            class="w-6 h-6 align-middle inline-block"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-            />
-          </svg>
-          Agent Connected
+      <label class="inline-flex items-center me-5 cursor-pointer">
+        <%= if Map.has_key?(@agent, :id) do %>
+          <div class="dark:text-slate-300">
+            <Buttons.icon icon={:green_check} /> Agent Connected
+          </div>
         <% else %>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="#E41B29"
-            class="w-6 h-6 align-middle inline-block"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-            />
-          </svg>
-          <button phx-click="request_config">
-            Connect via OpAMP
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="1.5"
-              stroke="currentColor"
-              class="w-6 h-6 align-middle inline-block"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
-              />
-            </svg>
-          </button>
+          <Buttons.navbar_button
+            id="opamp-connect"
+            phx_click="request_config"
+            text="Connect via OpAMP"
+            icon={:refresh}
+          />
         <% end %>
-      </div>
-      <%= if Map.has_key?(@config, :id) do %>
+      </label>
+      <%= if Map.has_key?(@agent, :id) do %>
         <button
           type="button"
           phx-click="toggle_navbar_menu"
-          disabled={!Map.has_key?(@config, :effective_config)}
-          class="relative rounded-md hover:text-red focus:outline-none focus:ring-2 focus:ring-white"
+          disabled={!Map.has_key?(@agent, :effective_config)}
+          class="relative rounded-md hover:text-red focus:outline-none focus:ring-2 focus:ring-white dark:text-slate-300"
         >
           <h3>Show Config</h3>
         </button>
@@ -142,12 +73,9 @@
     </div>
   </div>
 </header>
+
 <main class="px-4 sm:px-6 lg:px-8">
   <div class="mx-auto max-w-full">
-    <.modal id="attribute-modal">
-      <h1><%= String.capitalize(@modal_type) %></h1>
-      <Attributes.show data={@modal_attributes} modal_type={@modal_type} />
-    </.modal>
     <%= if @remote_tap_started do %>
       <div class="mt-4" id="attribute-filters">
         <%= if length(Map.keys(@filters)) > 0 do %>
@@ -323,113 +251,162 @@
           </li>
         </ul>
       </div>
-      <div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0">
-        <table class="w-[40rem] mt-11 sm:w-full">
-          <thead class="text-sm text-left leading-6 text-zinc-500">
-            <tr>
-              <div :for={col_name <- @columns[@active_stream]}>
-                <th class="p-0 pb-4 pr-6 font-normal"><%= col_name %></th>
-              </div>
-              <div :for={col_name <- @custom_columns}>
-                <th class="p-0 pb-4 pr-6 font-normal">
-                  <span
-                    id={"badge-dismiss-#{col_name}"}
-                    class="inline-flex items-center px-2 py-1 me-2 text-sm font-medium text-yellow-800 bg-yellow-100 rounded dark:bg-yellow-900 dark:text-yellow-300"
-                  >
-                    <%= col_name %>
-                    <button
-                      type="button"
-                      class="inline-flex items-center p-1 ms-2 text-sm text-yellow-400 bg-transparent rounded-sm hover:bg-yellow-200 hover:text-yellow-900 dark:hover:bg-yellow-800 dark:hover:text-yellow-300"
-                      phx-click="remove_column"
-                      phx-value-column={col_name}
-                      phx-value-column_type="attributes"
-                      aria-label="Remove"
-                    >
-                      <svg
-                        class="w-2 h-2"
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 14 14"
-                      >
-                        <path
-                          stroke="currentColor"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                        />
-                      </svg>
-                      <span class="sr-only"><%= col_name %></span>
-                    </button>
-                  </span>
-                </th>
-              </div>
-              <div :for={col_name <- @resource_columns}>
-                <th class="p-0 pb-4 pr-6 font-normal">
-                  <span
-                    id={"badge-dismiss-#{col_name}"}
-                    class="inline-flex items-center px-2 py-1 me-2 text-sm font-medium text-blue-800 bg-blue-100 rounded dark:bg-blue-900 dark:text-blue-300"
-                  >
-                    <%= col_name %>
-                    <button
-                      type="button"
-                      class="inline-flex items-center p-1 ms-2 text-sm text-blue-400 bg-transparent rounded-sm hover:bg-blue-200 hover:text-blue-900 dark:hover:bg-blue-800 dark:hover:text-blue-300"
-                      phx-click="remove_column"
-                      phx-value-column={col_name}
-                      phx-value-column_type="resource"
-                      aria-label="Remove"
-                    >
-                      <svg
-                        class="w-2 h-2"
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 14 14"
-                      >
-                        <path
-                          stroke="currentColor"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                        />
-                      </svg>
-                      <span class="sr-only"><%= col_name %></span>
-                    </button>
-                  </span>
-                </th>
-              </div>
-              <th class="p-0 pb-4 pr-6 font-normal">Attributes</th>
-              <th class="p-0 pb-4 pr-6 font-normal">Resource</th>
-            </tr>
-          </thead>
+      <div>
+        <aside
+          id="default-sidebar"
+          class="min-w-32 fixed transition-transform -translate-x-full sm:translate-x-0 dark:bg-gray-400 dark:border-gray-500 dark:text-white rounded-lg bg-gray-50"
+          aria-label="Sidebar"
+        >
+          <div class="h-96 px-3 py-4 overflow-y-auto">
+            <h1>Available Filters</h1>
+            <ul class="space-y-2 font-medium">
+              <li>
+                <Dropdown.dropdown id="attribute">
+                  <:button>
+                    Attributes
+                  </:button>
 
-          <tbody
-            id="data"
-            phx-update="stream"
-            class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
-          >
-            <tr :for={{row_id, row} <- @streams.data} id={row_id}>
-              <ResourceData.show
-                data={row}
-                stream_name={@active_stream}
-                custom_columns={@custom_columns}
-                resource_columns={@resource_columns}
-                attribute_click={
-                  fn data ->
-                    JS.push("attribute_clicked", value: data)
-                  end
-                }
-                resource_attribute_click={
-                  fn data ->
-                    JS.push("resource_attribute_clicked", value: data)
-                  end
-                }
-              />
-            </tr>
-          </tbody>
-        </table>
+                  <:item :for={{k, values} <- @available_filters} id={"#{k}-attr-item"}>
+                    <.live_component
+                      module={FilterDropdown}
+                      id={"#{generate_id_from_key(k)}-attribute-filter-dropdown"}
+                      key={k}
+                      values={values}
+                      button_title={k}
+                      filter_type="attributes"
+                    />
+                  </:item>
+                </Dropdown.dropdown>
+              </li>
+              <li>
+                <Dropdown.dropdown id="resource">
+                  <:button>
+                    Resource
+                  </:button>
+
+                  <:item
+                    :for={{k, values} <- @available_resource_filters}
+                    id={"#{k}-resource-item"}
+                  >
+                    <.live_component
+                      module={FilterDropdown}
+                      id={"#{generate_id_from_key(k)}-resource-filter-dropdown"}
+                      key={k}
+                      values={values}
+                      button_title={k}
+                      filter_type="resource"
+                    />
+                  </:item>
+                </Dropdown.dropdown>
+              </li>
+            </ul>
+          </div>
+        </aside>
+        <div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0 ml-52">
+          <table class="w-[40rem] mt-11 sm:w-full">
+            <thead class="text-sm text-left leading-6 text-zinc-500">
+              <tr>
+                <div :for={col_name <- @columns[@active_stream]}>
+                  <th class="p-0 pb-4 pr-6 font-normal dark:text-slate-50"><%= col_name %></th>
+                </div>
+                <div :for={col_name <- @custom_columns}>
+                  <th class="p-0 pb-4 pr-6 font-normal">
+                    <span
+                      id={"badge-dismiss-#{col_name}"}
+                      class="inline-flex items-center px-2 py-1 me-2 text-sm font-medium text-yellow-800 bg-yellow-100 rounded dark:bg-yellow-900 dark:text-yellow-300"
+                    >
+                      <%= col_name %>
+                      <button
+                        type="button"
+                        class="inline-flex items-center p-1 ms-2 text-sm text-yellow-400 bg-transparent rounded-sm hover:bg-yellow-200 hover:text-yellow-900 dark:hover:bg-yellow-800 dark:hover:text-yellow-300"
+                        phx-click="remove_column"
+                        phx-value-column={col_name}
+                        phx-value-column_type="attributes"
+                        aria-label="Remove"
+                      >
+                        <svg
+                          class="w-2 h-2"
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 14 14"
+                        >
+                          <path
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                          />
+                        </svg>
+                        <span class="sr-only"><%= col_name %></span>
+                      </button>
+                    </span>
+                  </th>
+                </div>
+                <div :for={col_name <- @resource_columns}>
+                  <th class="p-0 pb-4 pr-6 font-normal">
+                    <span
+                      id={"badge-dismiss-#{col_name}"}
+                      class="inline-flex items-center px-2 py-1 me-2 text-sm font-medium text-blue-800 bg-blue-100 rounded dark:bg-blue-900 dark:text-blue-300"
+                    >
+                      <%= col_name %>
+                      <button
+                        type="button"
+                        class="inline-flex items-center p-1 ms-2 text-sm text-blue-400 bg-transparent rounded-sm hover:bg-blue-200 hover:text-blue-900 dark:hover:bg-blue-800 dark:hover:text-blue-300"
+                        phx-click="remove_column"
+                        phx-value-column={col_name}
+                        phx-value-column_type="resource"
+                        aria-label="Remove"
+                      >
+                        <svg
+                          class="w-2 h-2"
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 14 14"
+                        >
+                          <path
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                          />
+                        </svg>
+                        <span class="sr-only"><%= col_name %></span>
+                      </button>
+                    </span>
+                  </th>
+                </div>
+              </tr>
+            </thead>
+
+            <tbody
+              id="data"
+              phx-update="stream"
+              class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
+            >
+              <tr
+                :for={{row_id, row} <- @streams.data}
+                id={row_id}
+                class="group hover:bg-zinc-50 dark:text-slate-300"
+              >
+                <ResourceData.show
+                  data={row}
+                  stream_name={@active_stream}
+                  custom_columns={@custom_columns}
+                  resource_columns={@resource_columns}
+                  row_click={
+                    fn data ->
+                      JS.push("row_clicked", value: data)
+                    end
+                  }
+                />
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     <% else %>
       <div class="flex justify-center items-center h-screen">
@@ -442,95 +419,42 @@
         </button>
       </div>
     <% end %>
-    <div
-      class="relative z-10 hidden"
-      aria-labelledby="slide-over-title"
-      role="dialog"
-      aria-modal="true"
-      phx-remove={hide_modal("menu")}
-      data-show={show_modal("menu")}
-      data-cancel={JS.exec(%JS{}, "phx-remove")}
-      id="menu"
-    >
-      <!--
-        Background backdrop, show/hide based on slide-over state.
+    <Slideover.slideover id="collector">
+      <div class="flex h-full flex-col overflow-y-scroll dark:bg-gray-700 dark:border-gray-600 dark:text-slate-300 py-6">
+        <div class="px-4 sm:px-6">
+          <%= if Map.has_key?(@agent, :id) do %>
+            <h1 class="text-lg font-semibold leading-8 text-zinc-800">
+              Collector <%= @agent.id %>
+            </h1>
 
-        Entering: "ease-in-out duration-500"
-          From: "opacity-0"
-          To: "opacity-100"
-        Leaving: "ease-in-out duration-500"
-          From: "opacity-100"
-          To: "opacity-0"
-      -->
-      <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
-
-      <div class="fixed inset-0 overflow-hidden">
-        <div class="absolute inset-0 overflow-hidden">
-          <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
-            <!--
-              Slide-over panel, show/hide based on slide-over state.
-
-              Entering: "transform transition ease-in-out duration-500 sm:duration-700"
-                From: "translate-x-full"
-                To: "translate-x-0"
-              Leaving: "transform transition ease-in-out duration-500 sm:duration-700"
-                From: "translate-x-0"
-                To: "translate-x-full"
-            -->
-            <div class="pointer-events-auto relative w-screen max-w-md">
-              <!--
-                Close button, show/hide based on slide-over state.
-
-                Entering: "ease-in-out duration-500"
-                  From: "opacity-0"
-                  To: "opacity-100"
-                Leaving: "ease-in-out duration-500"
-                  From: "opacity-100"
-                  To: "opacity-0"
-              -->
-              <div class="absolute left-0 top-0 -ml-8 flex pr-2 pt-4 sm:-ml-10 sm:pr-4">
-                <button
-                  type="button"
-                  phx-click={JS.exec("data-cancel", to: "#menu")}
-                  class="relative rounded-md text-gray-300 hover:text-white focus:outline-none focus:ring-2 focus:ring-white"
-                >
-                  <span class="absolute -inset-2.5"></span>
-                  <span class="sr-only">Close panel</span>
-                  <svg
-                    class="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              <div class="flex h-full flex-col overflow-y-scroll bg-white py-6 shadow-xl">
-                <div class="px-4 sm:px-6">
-                  <h2
-                    class="text-base font-semibold leading-6 text-gray-900"
-                    id="slide-over-title"
-                  >
-                    Collector Configuration
-                  </h2>
-                </div>
-                <div class="relative mt-6 flex-1 px-4 sm:px-6">
-                  <div id="editor" phx-update="ignore"></div>
-                  <textarea id="effective_config" phx-hook="EditorForm" class="hidden">
-                  <%= if Map.has_key?(@config, :effective_config) && map_size(@config.effective_config.config_map.config_map) > 0 do %>
-                      <%=@config.effective_config.config_map.config_map[""].body %>
-                  <% end %>
-                  </textarea>
-                </div>
-              </div>
-            </div>
-          </div>
+            <br /> Identifying Attributes
+            <Attributes.show
+              id="identifying_attrs"
+              data={convert_to_attrs(@agent.description.identifying_attributes)}
+            />
+            <br /> Non Identifying Attributes
+            <Attributes.show
+              id="nonidentifying_attrs"
+              data={convert_to_attrs(@agent.description.non_identifying_attributes)}
+            />
+          <% end %>
+        </div>
+        <div class="relative mt-6 flex-1 px-4 sm:px-6">
+          <div id="editor" phx-update="ignore"></div>
+          <textarea id="effective_config" phx-hook="EditorForm" class="hidden">
+          <%= if Map.has_key?(@agent, :effective_config) && map_size(@agent.effective_config.config_map.config_map) > 0 do %>
+              <%=@agent.effective_config.config_map.config_map[""].body %>
+          <% end %>
+          </textarea>
         </div>
       </div>
-    </div>
+    </Slideover.slideover>
+    <Slideover.slideover id="row-data">
+      <div class="flex h-full flex-col overflow-y-scroll dark:bg-gray-700 dark:border-gray-600 dark:text-slate-300 py-6">
+        <div class="relative mt-6 flex-1 px-4 sm:px-6">
+          <DataViewer.show data={@active_raw_data} modal_type={@modal_type} />
+        </div>
+      </div>
+    </Slideover.slideover>
   </div>
 </main>

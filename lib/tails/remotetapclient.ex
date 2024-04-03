@@ -7,6 +7,7 @@ defmodule Tails.RemoteTapClient do
     ]
 
     url = "ws://localhost:12001"
+    IO.puts("starting link!!!")
 
     WebSockex.start_link(url, __MODULE__, state,
       insecure: true,
@@ -38,7 +39,7 @@ defmodule Tails.RemoteTapClient do
     end
   end
 
-  def handle_disconnect(connection_status_map, state) do
+  def handle_disconnect(_connection_status_map, state) do
     {:ok, state}
   end
 
