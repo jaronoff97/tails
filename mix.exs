@@ -9,7 +9,11 @@ defmodule Tails.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      dialyzer: [
+        # Put the project-level PLT in the priv/ directory (instead of the default _build/ location)
+        plt_file: {:no_warn, "priv/plts/project.plt"}
+      ]
     ]
   end
 
@@ -38,6 +42,7 @@ defmodule Tails.MixProject do
       {:phoenix_live_view, "~> 0.20.14"},
       {:floki, ">= 0.36.0", only: :test},
       {:phoenix_live_dashboard, "~> 0.8.2"},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.2.0", runtime: Mix.env() == :dev},
       {:telemetry_metrics, "~> 0.6"},
