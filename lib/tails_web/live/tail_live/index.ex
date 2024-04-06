@@ -1,9 +1,7 @@
 defmodule TailsWeb.TailLive.Index do
   use TailsWeb, :live_view
 
-  alias TailsWeb.Common.{Buttons, Slideover, FilterDropdown, Dropdown}
   alias Tails.{Telemetry, Agents, Filters}
-  alias TailsWeb.Otel.{Attributes, ResourceData, DataViewer}
   @stream_limit 1000
 
   @columns %{
