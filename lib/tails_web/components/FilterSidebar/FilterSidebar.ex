@@ -6,10 +6,10 @@ defmodule FilterSidebar do
 
   use Phoenix.Component
 
-    # This is a shameful hack because apparently dots in ids are a no no?
-    defp generate_id_from_key(key) do
-      String.replace(key, ".", "-")
-    end
+  # This is a shameful hack because apparently dots in ids are a no no?
+  defp generate_id_from_key(key) do
+    String.replace(key, ".", "-")
+  end
 
   def showFilterSidebar(assigns) do
     ~H"""

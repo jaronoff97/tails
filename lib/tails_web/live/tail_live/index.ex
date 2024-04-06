@@ -427,5 +427,4 @@ defmodule TailsWeb.TailLive.Index do
         ""
     end
   end
-
 end
