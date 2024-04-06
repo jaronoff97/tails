@@ -7,8 +7,6 @@ config :tails, TailsWeb.Endpoint,
   secret_key_base: "jL+jAXQfWvILYEYDuNjHpVKlhClWiyXt/KRQy8cySo0Cls7hFcgiJ30REtH4JmAu",
   server: false
 
-
-
 # Print only warnings and errors during test
 config :logger, level: :warning
 

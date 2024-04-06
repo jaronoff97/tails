@@ -10,8 +10,13 @@ defmodule Tails.Telemetry do
   end
 
   defp broadcast({:ok, message}, event) do
-    Phoenix.PubSub.broadcast(Tails.PubSub, @channel, {event, message})
-    {:ok, message}
+    case Phoenix.PubSub.broadcast(Tails.PubSub, @channel, {event, message}) do
+      :ok ->
+        {:ok, message}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 
   def new_message(data) do
