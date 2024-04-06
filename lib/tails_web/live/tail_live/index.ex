@@ -397,8 +397,4 @@ defmodule TailsWeb.TailLive.Index do
     end
   end
 
-  # This is a shameful hack because apparently dots in ids are a no no?
-  defp generate_id_from_key(key) do
-    String.replace(key, ".", "-")
-  end
 end
