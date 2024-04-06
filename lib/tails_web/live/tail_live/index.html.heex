@@ -1,3 +1,4 @@
+<!-- Start of header -->
 <header class="px-4 sm:px-6 lg:px-8">
   <div class="flex items-center justify-between border-b border-zinc-100 py-3 text-sm">
     <div class="flex items-center gap-4">
@@ -7,14 +8,26 @@
       <p class="bg-brand/5 text-brand rounded-full px-2 font-medium leading-6">
         OTC Live Tail
       </p>
-      <a href="https://github.com/jaronoff97" class="hover:text-zinc-700">
-        @jaronoff97
-      </a>
       <a href="https://github.com/jaronoff97/tails" class="hover:text-zinc-700">
-        GitHub
+        <svg
+          class="w-6 h-6 text-gray-800 dark:text-white"
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          fill="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M12.006 2a9.847 9.847 0 0 0-6.484 2.44 10.32 10.32 0 0 0-3.393 6.17 10.48 10.48 0 0 0 1.317 6.955 10.045 10.045 0 0 0 5.4 4.418c.504.095.683-.223.683-.494 0-.245-.01-1.052-.014-1.908-2.78.62-3.366-1.21-3.366-1.21a2.711 2.711 0 0 0-1.11-1.5c-.907-.637.07-.621.07-.621.317.044.62.163.885.346.266.183.487.426.647.71.135.253.318.476.538.655a2.079 2.079 0 0 0 2.37.196c.045-.52.27-1.006.635-1.37-2.219-.259-4.554-1.138-4.554-5.07a4.022 4.022 0 0 1 1.031-2.75 3.77 3.77 0 0 1 .096-2.713s.839-.275 2.749 1.05a9.26 9.26 0 0 1 5.004 0c1.906-1.325 2.74-1.05 2.74-1.05.37.858.406 1.828.101 2.713a4.017 4.017 0 0 1 1.029 2.75c0 3.939-2.339 4.805-4.564 5.058a2.471 2.471 0 0 1 .679 1.897c0 1.372-.012 2.477-.012 2.814 0 .272.18.592.687.492a10.05 10.05 0 0 0 5.388-4.421 10.473 10.473 0 0 0 1.313-6.948 10.32 10.32 0 0 0-3.39-6.165A9.847 9.847 0 0 0 12.007 2Z"
+            clip-rule="evenodd"
+          />
+        </svg>
       </a>
     </div>
     <div class="flex items-center gap-4 font-semibold leading-6 text-zinc-900">
+      <!-- Streaming pause/play button -->
       <label class="inline-flex items-center me-5 cursor-pointer">
         <%= if @should_stream do %>
           <Buttons.navbar_button
@@ -32,6 +45,7 @@
           />
         <% end %>
       </label>
+      <!-- Toggle Remote Tap button -->
       <label class="inline-flex items-center me-5 cursor-pointer">
         <input
           type="checkbox"
@@ -46,6 +60,7 @@
           Toggle Remote Tap
         </span>
       </label>
+      <!-- Connext via OpAMP-->
       <label class="inline-flex items-center me-5 cursor-pointer">
         <%= if Map.has_key?(@agent, :id) do %>
           <div class="dark:text-slate-300">
@@ -60,6 +75,7 @@
           />
         <% end %>
       </label>
+      <!-- Will show if OpAMP is connected -->
       <%= if Map.has_key?(@agent, :id) do %>
         <button
           type="button"
@@ -73,177 +89,29 @@
     </div>
   </div>
 </header>
-
+<!-- End of header -->
 <main class="px-4 sm:px-6 lg:px-8">
   <div class="mx-auto max-w-full">
     <%= if @remote_tap_started do %>
-      <div class="mt-4" id="attribute-filters">
-        <%= if length(Map.keys(@filters)) > 0 do %>
-          <h2>Attribute Filters</h2>
-        <% end %>
-        <%= for {key, {action, val}} <- @filters do %>
-          <%= case action do %>
-            <% :exclude -> %>
-              <span
-                id={"badge-exclude-#{key}-#{val}"}
-                class="inline-flex items-center px-2 py-1 me-2 text-sm font-medium text-red-800 bg-red-100 rounded dark:bg-red-900 dark:text-red-300"
-              >
-                <%= key %>:<%= val %>
-                <button
-                  type="button"
-                  class="inline-flex items-center p-1  ms-2 text-sm text-red-400 bg-transparent rounded-sm hover:bg-red-200 hover:text-red-900 dark:hover:bg-red-800 dark:hover:text-red-300"
-                  phx-click="remove_attr_filter"
-                  phx-value-key={key}
-                  phx-value-filter_type="attributes"
-                  aria-label="Remove"
-                >
-                  <svg
-                    class="w-2 h-2"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 14 14"
-                  >
-                    <path
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                    />
-                  </svg>
-                  <span class="sr-only">Include <%= key %>:<%= val %></span>
-                </button>
-              </span>
-            <% :include -> %>
-              <span
-                id={"badge-include-#{key}-#{val}"}
-                class="inline-flex items-center px-2 py-1 me-2 text-sm font-medium text-green-800 bg-green-100 rounded dark:bg-green-900 dark:text-green-300"
-              >
-                <%= key %>:<%= val %>
-                <button
-                  type="button"
-                  class="inline-flex items-center p-1  ms-2 text-sm text-green-400 bg-transparent rounded-sm hover:bg-green-200 hover:text-green-900 dark:hover:bg-green-800 dark:hover:text-green-300"
-                  phx-click="remove_attr_filter"
-                  phx-value-key={key}
-                  phx-value-filter_type="attributes"
-                  aria-label="Remove"
-                >
-                  <svg
-                    class="w-2 h-2"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 14 14"
-                  >
-                    <path
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                    />
-                  </svg>
-                  <span class="sr-only">Include <%= key %>:<%= val %></span>
-                </button>
-              </span>
-            <% _ -> %>
-          <% end %>
-        <% end %>
-      </div>
-      <div class="mt-4" id="resource-attribute-filters">
-        <%= if length(Map.keys(@resource_filters)) > 0 do %>
-          <h2>Resource Attribute Filters</h2>
-        <% end %>
-        <%= for {key, {action, val}} <- @resource_filters do %>
-          <%= case action do %>
-            <% :exclude -> %>
-              <span
-                id={"badge-exclude-#{key}-#{val}"}
-                class="inline-flex items-center px-2 py-1 me-2 text-sm font-medium text-red-800 bg-red-100 rounded dark:bg-red-900 dark:text-red-300"
-              >
-                <%= key %>:<%= val %>
-                <button
-                  type="button"
-                  class="inline-flex items-center p-1  ms-2 text-sm text-red-400 bg-transparent rounded-sm hover:bg-red-200 hover:text-red-900 dark:hover:bg-red-800 dark:hover:text-red-300"
-                  phx-click="remove_attr_filter"
-                  phx-value-key={key}
-                  phx-value-filter_type="resource"
-                  aria-label="Remove"
-                >
-                  <svg
-                    class="w-2 h-2"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 14 14"
-                  >
-                    <path
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                    />
-                  </svg>
-                  <span class="sr-only">Include <%= key %>:<%= val %></span>
-                </button>
-              </span>
-            <% :include -> %>
-              <span
-                id={"badge-include-#{key}-#{val}"}
-                class="inline-flex items-center px-2 py-1 me-2 text-sm font-medium text-green-800 bg-green-100 rounded dark:bg-green-900 dark:text-green-300"
-              >
-                <%= key %>:<%= val %>
-                <button
-                  type="button"
-                  class="inline-flex items-center p-1  ms-2 text-sm text-green-400 bg-transparent rounded-sm hover:bg-green-200 hover:text-green-900 dark:hover:bg-green-800 dark:hover:text-green-300"
-                  phx-click="remove_attr_filter"
-                  phx-value-key={key}
-                  phx-value-filter_type="resource"
-                  aria-label="Remove"
-                >
-                  <svg
-                    class="w-2 h-2"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 14 14"
-                  >
-                    <path
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                    />
-                  </svg>
-                  <span class="sr-only">Include <%= key %>:<%= val %></span>
-                </button>
-              </span>
-            <% _ -> %>
-          <% end %>
-        <% end %>
-      </div>
-      <div class="mt-4">
-        <ul class="items-center w-full text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg sm:flex dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-          <li
-            :for={option <- @stream_options}
-            class="w-full border-b border-gray-200 sm:border-b-0 sm:border-r dark:border-gray-600"
-          >
-            <div class="flex items-center ps-3">
+      <!-- Metrics/Spans/Logs header radio buttons
+            * Will show after 'Remote tap not started...' button is clicked
+      -->
+      <div id="metrics-spans-logs-button-group" class="mx-auto w-min">
+        <ul class="m-5 text-sm font-medium text-gray-900  sm:flex dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+          <li :for={option <- @stream_options} class="pr-5">
+            <div class="flex items-center mb-4">
               <input
-                id={"#{option.id}"}
-                type="radio"
-                value={option.name}
-                name={option.name}
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                 checked={@active_stream == option.stream}
+                value={option.name}
+                type="radio"
+                id={"#{option.id}"}
+                name={option.name}
                 phx-click="change_stream"
-                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
               />
               <label
+                class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
                 for={"#{option.id}"}
-                class="w-full py-3 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
               >
                 <%= String.capitalize(option.name) %>
               </label>
@@ -251,163 +119,162 @@
           </li>
         </ul>
       </div>
-      <div>
-        <aside
-          id="default-sidebar"
-          class="min-w-32 fixed transition-transform -translate-x-full sm:translate-x-0 dark:bg-gray-400 dark:border-gray-500 dark:text-white rounded-lg bg-gray-50"
-          aria-label="Sidebar"
-        >
-          <div class="h-96 px-3 py-4 overflow-y-auto">
-            <h1>Available Filters</h1>
-            <ul class="space-y-2 font-medium">
-              <li>
-                <Dropdown.dropdown id="attribute">
-                  <:button>
-                    Attributes
-                  </:button>
-
-                  <:item :for={{k, values} <- @available_filters} id={"#{k}-attr-item"}>
-                    <.live_component
-                      module={FilterDropdown}
-                      id={"#{generate_id_from_key(k)}-attribute-filter-dropdown"}
-                      key={k}
-                      values={values}
-                      button_title={k}
-                      filter_type="attributes"
-                    />
-                  </:item>
-                </Dropdown.dropdown>
-              </li>
-              <li>
-                <Dropdown.dropdown id="resource">
-                  <:button>
-                    Resource
-                  </:button>
-
-                  <:item
-                    :for={{k, values} <- @available_resource_filters}
-                    id={"#{k}-resource-item"}
+      <!-- End of Metrics/Spans/Logs -->
+      <hr class="solid" />
+      <!-- Applied Filters -->
+      <div id="applied-filters-container">
+        <div class="flex mx-auto">
+          <div id="attribute-filters">
+            <%= if length(Map.keys(@filters)) > 0 do %>
+              <h2>Attribute Filters</h2>
+            <% end %>
+            <%= for {key, {action, val}} <- @filters do %>
+              <%= case action do %>
+                <% :exclude -> %>
+                  <span
+                    id={"badge-exclude-#{key}-#{val}"}
+                    class="inline-flex items-center px-2 py-1 me-2 text-sm font-medium text-red-800 bg-red-100 rounded dark:bg-red-900 dark:text-red-300"
                   >
-                    <.live_component
-                      module={FilterDropdown}
-                      id={"#{generate_id_from_key(k)}-resource-filter-dropdown"}
-                      key={k}
-                      values={values}
-                      button_title={k}
-                      filter_type="resource"
-                    />
-                  </:item>
-                </Dropdown.dropdown>
-              </li>
-            </ul>
+                    <%= key %>:<%= val %>
+                    <button
+                      type="button"
+                      class="inline-flex items-center p-1  ms-2 text-sm text-red-400 bg-transparent rounded-sm hover:bg-red-200 hover:text-red-900 dark:hover:bg-red-800 dark:hover:text-red-300"
+                      phx-click="remove_attr_filter"
+                      phx-value-key={key}
+                      phx-value-filter_type="attributes"
+                      aria-label="Remove"
+                    >
+                      <svg
+                        class="w-2 h-2"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 14 14"
+                      >
+                        <path
+                          stroke="currentColor"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                        />
+                      </svg>
+                      <span class="sr-only">Include <%= key %>:<%= val %></span>
+                    </button>
+                  </span>
+                <% :include -> %>
+                  <span
+                    id={"badge-include-#{key}-#{val}"}
+                    class="inline-flex items-center px-2 py-1 me-2 text-sm font-medium text-green-800 bg-green-100 rounded dark:bg-green-900 dark:text-green-300"
+                  >
+                    <%= key %>:<%= val %>
+                    <button
+                      type="button"
+                      class="inline-flex items-center p-1  ms-2 text-sm text-green-400 bg-transparent rounded-sm hover:bg-green-200 hover:text-green-900 dark:hover:bg-green-800 dark:hover:text-green-300"
+                      phx-click="remove_attr_filter"
+                      phx-value-key={key}
+                      phx-value-filter_type="attributes"
+                      aria-label="Remove"
+                    >
+                      <svg
+                        class="w-2 h-2"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 14 14"
+                      >
+                        <path
+                          stroke="currentColor"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                        />
+                      </svg>
+                      <span class="sr-only">Include <%= key %>:<%= val %></span>
+                    </button>
+                  </span>
+                <% _ -> %>
+              <% end %>
+            <% end %>
           </div>
-        </aside>
-        <div class="overflow-y-auto px-4 sm:overflow-visible sm:px-0 ml-52">
-          <table class="w-[40rem] mt-11 sm:w-full">
-            <thead class="text-sm text-left leading-6 text-zinc-500">
-              <tr>
-                <div :for={col_name <- @columns[@active_stream]}>
-                  <th class="p-0 pb-4 pr-6 font-normal dark:text-slate-50"><%= col_name %></th>
-                </div>
-                <div :for={col_name <- @custom_columns}>
-                  <th class="p-0 pb-4 pr-6 font-normal">
-                    <span
-                      id={"badge-dismiss-#{col_name}"}
-                      class="inline-flex items-center px-2 py-1 me-2 text-sm font-medium text-yellow-800 bg-yellow-100 rounded dark:bg-yellow-900 dark:text-yellow-300"
+          <div id="resource-attribute-filters">
+            <%= if length(Map.keys(@resource_filters)) > 0 do %>
+              <h2>Resource Attribute Filters</h2>
+            <% end %>
+            <%= for {key, {action, val}} <- @resource_filters do %>
+              <%= case action do %>
+                <% :exclude -> %>
+                  <span
+                    id={"badge-exclude-#{key}-#{val}"}
+                    class="inline-flex items-center px-2 py-1 me-2 text-sm font-medium text-red-800 bg-red-100 rounded dark:bg-red-900 dark:text-red-300"
+                  >
+                    <%= key %>:<%= val %>
+                    <button
+                      type="button"
+                      class="inline-flex items-center p-1  ms-2 text-sm text-red-400 bg-transparent rounded-sm hover:bg-red-200 hover:text-red-900 dark:hover:bg-red-800 dark:hover:text-red-300"
+                      phx-click="remove_attr_filter"
+                      phx-value-key={key}
+                      phx-value-filter_type="resource"
+                      aria-label="Remove"
                     >
-                      <%= col_name %>
-                      <button
-                        type="button"
-                        class="inline-flex items-center p-1 ms-2 text-sm text-yellow-400 bg-transparent rounded-sm hover:bg-yellow-200 hover:text-yellow-900 dark:hover:bg-yellow-800 dark:hover:text-yellow-300"
-                        phx-click="remove_column"
-                        phx-value-column={col_name}
-                        phx-value-column_type="attributes"
-                        aria-label="Remove"
+                      <svg
+                        class="w-2 h-2"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 14 14"
                       >
-                        <svg
-                          class="w-2 h-2"
-                          aria-hidden="true"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 14 14"
-                        >
-                          <path
-                            stroke="currentColor"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                          />
-                        </svg>
-                        <span class="sr-only"><%= col_name %></span>
-                      </button>
-                    </span>
-                  </th>
-                </div>
-                <div :for={col_name <- @resource_columns}>
-                  <th class="p-0 pb-4 pr-6 font-normal">
-                    <span
-                      id={"badge-dismiss-#{col_name}"}
-                      class="inline-flex items-center px-2 py-1 me-2 text-sm font-medium text-blue-800 bg-blue-100 rounded dark:bg-blue-900 dark:text-blue-300"
+                        <path
+                          stroke="currentColor"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                        />
+                      </svg>
+                      <span class="sr-only">Include <%= key %>:<%= val %></span>
+                    </button>
+                  </span>
+                <% :include -> %>
+                  <span
+                    id={"badge-include-#{key}-#{val}"}
+                    class="inline-flex items-center px-2 py-1 me-2 text-sm font-medium text-green-800 bg-green-100 rounded dark:bg-green-900 dark:text-green-300"
+                  >
+                    <%= key %>:<%= val %>
+                    <button
+                      type="button"
+                      class="inline-flex items-center p-1  ms-2 text-sm text-green-400 bg-transparent rounded-sm hover:bg-green-200 hover:text-green-900 dark:hover:bg-green-800 dark:hover:text-green-300"
+                      phx-click="remove_attr_filter"
+                      phx-value-key={key}
+                      phx-value-filter_type="resource"
+                      aria-label="Remove"
                     >
-                      <%= col_name %>
-                      <button
-                        type="button"
-                        class="inline-flex items-center p-1 ms-2 text-sm text-blue-400 bg-transparent rounded-sm hover:bg-blue-200 hover:text-blue-900 dark:hover:bg-blue-800 dark:hover:text-blue-300"
-                        phx-click="remove_column"
-                        phx-value-column={col_name}
-                        phx-value-column_type="resource"
-                        aria-label="Remove"
+                      <svg
+                        class="w-2 h-2"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 14 14"
                       >
-                        <svg
-                          class="w-2 h-2"
-                          aria-hidden="true"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 14 14"
-                        >
-                          <path
-                            stroke="currentColor"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                          />
-                        </svg>
-                        <span class="sr-only"><%= col_name %></span>
-                      </button>
-                    </span>
-                  </th>
-                </div>
-              </tr>
-            </thead>
-
-            <tbody
-              id="data"
-              phx-update="stream"
-              class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
-            >
-              <tr
-                :for={{row_id, row} <- @streams.data}
-                id={row_id}
-                class="group hover:bg-zinc-50 dark:text-slate-300"
-              >
-                <ResourceData.show
-                  data={row}
-                  stream_name={@active_stream}
-                  custom_columns={@custom_columns}
-                  resource_columns={@resource_columns}
-                  row_click={
-                    fn data ->
-                      JS.push("row_clicked", value: data)
-                    end
-                  }
-                />
-              </tr>
-            </tbody>
-          </table>
+                        <path
+                          stroke="currentColor"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                        />
+                      </svg>
+                      <span class="sr-only">Include <%= key %>:<%= val %></span>
+                    </button>
+                  </span>
+                <% _ -> %>
+              <% end %>
+            <% end %>
+          </div>
         </div>
       </div>
+      <hr class="solid" />
     <% else %>
       <div class="flex justify-center items-center h-screen">
         <button
@@ -419,6 +286,7 @@
         </button>
       </div>
     <% end %>
+    <!-- Shows raw data  -->
     <Slideover.slideover id="collector">
       <div class="flex h-full flex-col overflow-y-scroll dark:bg-gray-700 dark:border-gray-600 dark:text-slate-300 py-6">
         <div class="px-4 sm:px-6">
@@ -457,4 +325,159 @@
       </div>
     </Slideover.slideover>
   </div>
+  <!-- Filter and Table -->
+  <div id="table-and-filter-component" class="flex mt-6">
+    <!-- Filter Dropdown -->
+    <div id="default-sidebar" class="w-80 h-min rounded-lg dark:bg-gray-600">
+      <div class="w-80 px-3 py-4 overflow-y-auto">
+        <h2 class="text-2xl font-extrabold dark:text-white">Filters</h2>
+        <hr class="solid pb-5" />
+        <ul class=" font-medium">
+          <li>
+            <Dropdown.dropdown id="attribute">
+              <:button>
+                Attributes
+              </:button>
+
+              <:item :for={{k, values} <- @available_filters} id={"#{k}-attr-item"}>
+                <.live_component
+                  module={FilterDropdown}
+                  id={"#{generate_id_from_key(k)}-attribute-filter-dropdown"}
+                  key={k}
+                  values={values}
+                  button_title={k}
+                  filter_type="attributes"
+                />
+              </:item>
+            </Dropdown.dropdown>
+          </li>
+          <li>
+            <Dropdown.dropdown id="resource">
+              <:button>
+                Resource
+              </:button>
+
+              <:item :for={{k, values} <- @available_resource_filters} id={"#{k}-resource-item"}>
+                <.live_component
+                  module={FilterDropdown}
+                  id={"#{generate_id_from_key(k)}-resource-filter-dropdown"}
+                  key={k}
+                  values={values}
+                  button_title={k}
+                  filter_type="resource"
+                />
+              </:item>
+            </Dropdown.dropdown>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <!-- Table -->
+    <div id="table" class="w-full overflow-y-auto sm:overflow-visible sm:px-0 ml-6">
+      <table class="w-[40rem] sm:w-full">
+        <thead class="text-sm text-left leading-6 text-zinc-500">
+          <tr>
+            <div :for={col_name <- @columns[@active_stream]}>
+              <th class="p-0 pb-4 pr-6 font-normal dark:text-slate-50"><%= col_name %></th>
+            </div>
+            <div :for={col_name <- @custom_columns}>
+              <th class="p-0 pb-4 pr-6 font-normal">
+                <span
+                  id={"badge-dismiss-#{col_name}"}
+                  class="inline-flex items-center px-2 py-1 me-2 text-sm font-medium text-yellow-800 bg-yellow-100 rounded dark:bg-yellow-900 dark:text-yellow-300"
+                >
+                  <%= col_name %>
+                  <button
+                    type="button"
+                    class="inline-flex items-center p-1 ms-2 text-sm text-yellow-400 bg-transparent rounded-sm hover:bg-yellow-200 hover:text-yellow-900 dark:hover:bg-yellow-800 dark:hover:text-yellow-300"
+                    phx-click="remove_column"
+                    phx-value-column={col_name}
+                    phx-value-column_type="attributes"
+                    aria-label="Remove"
+                  >
+                    <svg
+                      class="w-2 h-2"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 14 14"
+                    >
+                      <path
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                      />
+                    </svg>
+                    <span class="sr-only"><%= col_name %></span>
+                  </button>
+                </span>
+              </th>
+            </div>
+            <div :for={col_name <- @resource_columns}>
+              <th class="p-0 pb-4 pr-6 font-normal">
+                <span
+                  id={"badge-dismiss-#{col_name}"}
+                  class="inline-flex items-center px-2 py-1 me-2 text-sm font-medium text-blue-800 bg-blue-100 rounded dark:bg-blue-900 dark:text-blue-300"
+                >
+                  <%= col_name %>
+                  <button
+                    type="button"
+                    class="inline-flex items-center p-1 ms-2 text-sm text-blue-400 bg-transparent rounded-sm hover:bg-blue-200 hover:text-blue-900 dark:hover:bg-blue-800 dark:hover:text-blue-300"
+                    phx-click="remove_column"
+                    phx-value-column={col_name}
+                    phx-value-column_type="resource"
+                    aria-label="Remove"
+                  >
+                    <svg
+                      class="w-2 h-2"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 14 14"
+                    >
+                      <path
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                      />
+                    </svg>
+                    <span class="sr-only"><%= col_name %></span>
+                  </button>
+                </span>
+              </th>
+            </div>
+          </tr>
+        </thead>
+
+        <tbody
+          id="data"
+          phx-update="stream"
+          class="relative divide-y divide-zinc-100 border-t border-zinc-200 text-sm leading-6 text-zinc-700"
+        >
+          <tr
+            :for={{row_id, row} <- @streams.data}
+            id={row_id}
+            class="group hover:bg-zinc-50 dark:text-slate-300"
+          >
+            <ResourceData.show
+              data={row}
+              stream_name={@active_stream}
+              custom_columns={@custom_columns}
+              resource_columns={@resource_columns}
+              row_click={
+                fn data ->
+                  JS.push("row_clicked", value: data)
+                end
+              }
+            />
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <!-- End of Filter and Table -->
 </main>
