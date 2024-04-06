@@ -1,0 +1,24 @@
+name: "Generate Release"
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Tag Version x.x.x"
+        required: true
+        type: string
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create \
+              -t "Release v${{ github.event.inputs.version }}" \
+              --generate-notes \
+              --draft \
+              "v${{ github.event.inputs.version }}"

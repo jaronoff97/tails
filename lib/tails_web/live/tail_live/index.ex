@@ -32,8 +32,13 @@ defmodule TailsWeb.TailLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    if connected?(socket), do: Telemetry.subscribe()
-    if connected?(socket), do: Agents.subscribe()
+    if connected?(socket) do
+      :ok = Telemetry.subscribe()
+    end
+
+    if connected?(socket) do
+      :ok = Agents.subscribe()
+    end
 
     {:ok,
      socket
@@ -91,7 +96,7 @@ defmodule TailsWeb.TailLive.Index do
 
   @impl true
   def handle_event("request_config", _value, socket) do
-    request_new_config(socket)
+    :ok = request_new_config(socket)
     {:noreply, socket}
   end
 
@@ -109,6 +114,24 @@ defmodule TailsWeb.TailLive.Index do
      socket
      |> assign(:active_raw_data, value)
      |> push_event("js-exec", %{to: "#row-data", attr: "data-show"})}
+  end
+
+  @impl true
+  def handle_event(
+        "update_columns",
+        %{
+          "column_type" => column_type_string,
+          "key" => key
+        },
+        socket
+      ) do
+    {:noreply,
+     socket
+     |> update_columns(
+       column_from_string(column_type_string),
+       key,
+       :add
+     )}
   end
 
   @impl true
@@ -135,21 +158,33 @@ defmodule TailsWeb.TailLive.Index do
   end
 
   @impl true
-  def handle_event("remove_column", %{"column" => column, "column_type" => column_type}, socket) do
+  def handle_event(
+        "remove_column",
+        %{"column" => column, "column_type" => column_type_string},
+        socket
+      ) do
     {:noreply,
      socket
      |> put_flash(:info, "column removed, data reset")
-     |> remove_column(column, column_type)
-     |> stream(:data, [], reset: true)}
+     |> update_columns(column_from_string(column_type_string), column, :remove)}
   end
 
   @impl true
-  def handle_event("remove_attr_filter", %{"key" => key, "filter_type" => filter_type}, socket) do
+  def handle_event(
+        "remove_attr_filter",
+        %{"key" => key, "filter_type" => filter_type_string},
+        socket
+      ) do
     {:noreply,
      socket
      |> put_flash(:info, "filter removed, data reset")
-     |> remove_filter(key, filter_type)
-     |> stream(:data, [], reset: true)}
+     |> update_filters(
+       filter_from_string(filter_type_string),
+       key,
+       nil,
+       nil,
+       :remove
+     )}
   end
 
   @impl true
@@ -202,27 +237,29 @@ defmodule TailsWeb.TailLive.Index do
     end
   end
 
-  defp remove_column(socket, column, column_type) when column_type == "attributes",
-    do: assign(socket, :custom_columns, MapSet.delete(socket.assigns.custom_columns, column))
-
-  defp remove_column(socket, column, column_type) when column_type == "resource",
-    do: assign(socket, :resource_columns, MapSet.delete(socket.assigns.resource_columns, column))
-
-  defp remove_column(socket, _column, _column_type), do: socket
-
-  defp remove_filter(socket, key, filter_type) when filter_type == "attributes",
-    do: assign(socket, :filters, Map.delete(socket.assigns.filters, key))
-
-  defp remove_filter(socket, key, filter_type) when filter_type == "resource",
-    do: assign(socket, :resource_filters, Map.delete(socket.assigns.resource_filters, key))
-
-  defp remove_filter(socket, _key, _filter_type), do: socket
-
   defp filter_from_string(filter_type_string) when filter_type_string == "resource",
     do: :resource_filters
 
   defp filter_from_string(filter_type_string) when filter_type_string == "attributes",
     do: :filters
+
+  defp column_from_string(column_type_string) when column_type_string == "resource",
+    do: :resource_columns
+
+  defp column_from_string(column_type_string) when column_type_string == "attributes",
+    do: :custom_columns
+
+  defp update_columns(socket, column_type, key, :add) do
+    socket
+    |> assign(column_type, MapSet.put(socket.assigns[column_type], key))
+    |> stream(:data, [], reset: true)
+  end
+
+  defp update_columns(socket, column_type, key, :remove) do
+    socket
+    |> assign(column_type, MapSet.delete(socket.assigns[column_type], key))
+    |> stream(:data, [], reset: true)
+  end
 
   defp update_filters(socket, filter_type, key, action, val, :add) do
     socket
@@ -239,6 +276,8 @@ defmodule TailsWeb.TailLive.Index do
   defp request_new_config(socket) do
     if !Map.has_key?(socket.assigns.agent, :effective_config) do
       Agents.request_latest_config()
+    else
+      :ok
     end
   end
 
