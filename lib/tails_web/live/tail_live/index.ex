@@ -1,7 +1,9 @@
 defmodule TailsWeb.TailLive.Index do
   use TailsWeb, :live_view
 
+  alias TailsWeb.Common.{Buttons, Slideover}
   alias Tails.{Telemetry, Agents, Filters}
+  alias TailsWeb.Otel.{Attributes, DataViewer}
   @stream_limit 1000
 
   @columns %{
@@ -215,14 +217,6 @@ defmodule TailsWeb.TailLive.Index do
     do: assign(socket, :resource_filters, Map.delete(socket.assigns.resource_filters, key))
 
   defp remove_filter(socket, _key, _filter_type), do: socket
-
-  defp assign_columns(socket, key) when socket.assigns.modal_type == "resource",
-    do: assign(socket, :resource_columns, MapSet.put(socket.assigns.resource_columns, key))
-
-  defp assign_columns(socket, key) when socket.assigns.modal_type == "attributes",
-    do: assign(socket, :custom_columns, MapSet.put(socket.assigns.custom_columns, key))
-
-  defp assign_columns(socket, _key), do: socket
 
   defp filter_from_string(filter_type_string) when filter_type_string == "resource",
     do: :resource_filters
