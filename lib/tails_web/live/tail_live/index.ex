@@ -1,9 +1,9 @@
 defmodule TailsWeb.TailLive.Index do
   use TailsWeb, :live_view
 
-  alias TailsWeb.Common.{Buttons, Slideover, FilterDropdown, Dropdown}
+  alias TailsWeb.Common.{Buttons, Slideover}
   alias Tails.{Telemetry, Agents, Filters}
-  alias TailsWeb.Otel.{Attributes, ResourceData, DataViewer}
+  alias TailsWeb.Otel.{Attributes, DataViewer}
   @stream_limit 1000
 
   @columns %{
@@ -426,10 +426,5 @@ defmodule TailsWeb.TailLive.Index do
         IO.puts("unable to retrieve value for type #{other}")
         ""
     end
-  end
-
-  # This is a shameful hack because apparently dots in ids are a no no?
-  defp generate_id_from_key(key) do
-    String.replace(key, ".", "-")
   end
 end
