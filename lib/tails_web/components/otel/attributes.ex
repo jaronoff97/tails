@@ -6,7 +6,7 @@ defmodule TailsWeb.Otel.Attributes do
   def show(assigns) do
     ~H"""
     <div>
-      <.table id={@id} rows={@data}>
+      <.table id={@id} rows={@data} caption={@caption}>
         <:col :let={attribute} label="key"><%= attribute["key"] %></:col>
         <:col :let={attribute} label="value">
           <%= Telemetry.string_from_value(attribute["value"]) %>

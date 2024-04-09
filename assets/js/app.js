@@ -28,13 +28,35 @@ import { EditorState, Compartment } from "@codemirror/state";
 import * as yamlMode from "@codemirror/legacy-modes/mode/yaml";
 import { json } from "@codemirror/lang-json"
 import { StreamLanguage } from "@codemirror/language";
+import { oneDark } from '@codemirror/theme-one-dark';
+import { tomorrow } from 'thememirror';
 
 const yaml = StreamLanguage.define(yamlMode.yaml);
 let language = new Compartment, tabSize = new Compartment
+let editorTheme = new Compartment();
 
 let state = EditorState.create({
-  extensions: [basicSetup, yaml, language.of(json())],
+  extensions: [
+    basicSetup,
+    yaml,
+    language.of(json()),
+    darkModeEnabled() ? editorTheme.of(oneDark) : tomorrow,
+  ],
 });
+
+function darkModeEnabled() {
+  // Check to see if Media-Queries are supported
+  if (window.matchMedia) {
+    // Check if the dark-mode Media-Query matches
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+    return false;
+  }
+}
 
 hooks = {
   DataViewer: {
@@ -52,6 +74,7 @@ hooks = {
         height: 100,
         state: state,
         parent: document.getElementById("data-viewer"),
+
       });
       let textarea = this.el;
 

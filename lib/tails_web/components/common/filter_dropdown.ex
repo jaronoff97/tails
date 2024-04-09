@@ -26,7 +26,7 @@ defmodule TailsWeb.Common.FilterDropdown do
     <div class="relative" data-component={"#{@id}-dropdown"}>
       <button
         type="button"
-        class="flex items-center p-2 w-full text-base font-medium text-gray-900 rounded-lg transition duration-75 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+        class="flex items-center w-full"
         id={"#{@id}-button"}
         aria-expanded="false"
         phx-target={@myself}
@@ -71,91 +71,89 @@ defmodule TailsWeb.Common.FilterDropdown do
         </form>
         <ul>
           <li :for={v <- filter_list(@values, @filter_string)}>
-            <div class="block items-center p-2 pl-11 w-full text-base font-medium text-gray-900 rounded-lg transition duration-75 group dark:text-white ">
+            <div class="block items-center p-2 pl-11 w-full text-base font-medium">
               <div>
-                <div class="space-y-6">
-                  <div class="flex items-center">
-                    <button
-                      id={"#{@id}-#{v}-column"}
-                      phx-value-column_type={@filter_type}
-                      phx-value-key={@key}
-                      phx-click="update_columns"
+                <div class="flex items-center">
+                  <button
+                    id={"#{@id}-#{v}-column"}
+                    phx-value-column_type={@filter_type}
+                    phx-value-key={@key}
+                    phx-click="update_columns"
+                  >
+                    <svg
+                      class="w-[20px] h-[20px] text-gray-800 dark:text-white"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      fill="none"
+                      viewBox="0 0 24 24"
                     >
-                      <svg
-                        class="w-[20px] h-[20px] text-gray-800 dark:text-white"
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke="currentColor"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M15 5v14M9 5v14M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      id={"#{@id}-#{v}-include"}
-                      phx-value-filter_type={@filter_type}
-                      phx-value-key={@key}
-                      phx-value-val={v}
-                      phx-value-action="include"
-                      phx-click="update_filters"
+                      <path
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 5v14M9 5v14M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    id={"#{@id}-#{v}-include"}
+                    phx-value-filter_type={@filter_type}
+                    phx-value-key={@key}
+                    phx-value-val={v}
+                    phx-value-action="include"
+                    phx-click="update_filters"
+                  >
+                    <svg
+                      class="w-[20px] h-[20px] text-gray-800 dark:text-white"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      fill="none"
+                      viewBox="0 0 24 24"
                     >
-                      <svg
-                        class="w-[20px] h-[20px] text-gray-800 dark:text-white"
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke="currentColor"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M12 7.757v8.486M7.757 12h8.486M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      id={"#{@id}-#{v}-exclude"}
-                      phx-value-filter_type={@filter_type}
-                      phx-value-key={@key}
-                      phx-value-val={v}
-                      phx-value-action="exclude"
-                      phx-click="update_filters"
+                      <path
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 7.757v8.486M7.757 12h8.486M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    id={"#{@id}-#{v}-exclude"}
+                    phx-value-filter_type={@filter_type}
+                    phx-value-key={@key}
+                    phx-value-val={v}
+                    phx-value-action="exclude"
+                    phx-click="update_filters"
+                  >
+                    <svg
+                      class="w-[20px] h-[20px] text-gray-800 dark:text-white"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      fill="none"
+                      viewBox="0 0 24 24"
                     >
-                      <svg
-                        class="w-[20px] h-[20px] text-gray-800 dark:text-white"
-                        aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        fill="none"
-                        viewBox="0 0 24 24"
+                      <path
+                        d="M8 12H16M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
                       >
-                        <path
-                          d="M8 12H16M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                        </path>
-                      </svg>
-                    </button>
-                    <label class="ml-3 min-w-0 flex-1 text-gray-500">
-                      <%= v %>
-                    </label>
-                  </div>
+                      </path>
+                    </svg>
+                  </button>
+                  <label class="ml-3">
+                    <%= v %>
+                  </label>
                 </div>
               </div>
             </div>

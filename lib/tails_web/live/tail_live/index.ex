@@ -317,7 +317,7 @@ defmodule TailsWeb.TailLive.Index do
 
       socket
       |> assign_available_filters(records)
-      |> stream(:data, records, at: -1, limit: -@stream_limit)
+      |> stream(:data, records, at: 0, limit: -@stream_limit)
     else
       socket
     end
