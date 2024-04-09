@@ -4,7 +4,7 @@ defmodule TailsWeb.Common.Slideover do
   alias Phoenix.LiveView.JS
 
   @doc """
-  Renders a Button.
+  Renders a slideover.
 
   """
   attr :id, :string, required: true
@@ -95,10 +95,7 @@ defmodule TailsWeb.Common.Slideover do
                   </button>
                 </div>
 
-                <div
-                  id={"#{@id}-content"}
-                  class="flex flex-col overflow-y-scroll bg-white py-6 shadow-xl"
-                >
+                <div id={"#{@id}-content"} class="flex flex-col overflow-y-scroll shadow-xl">
                   <%= render_slot(@inner_block) %>
                 </div>
               </.focus_wrap>

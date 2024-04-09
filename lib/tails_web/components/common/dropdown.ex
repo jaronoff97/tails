@@ -14,7 +14,7 @@ defmodule TailsWeb.Common.Dropdown do
     <div class="relative" data-component={"#{@id}-dropdown"}>
       <button
         type="button"
-        class="flex items-center p-2 w-full text-base font-medium text-gray-900 rounded-lg transition duration-75 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+        class="flex items-center p-2 w-full text-base font-medium text-gray-900 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
         id={"#{@id}-button"}
         aria-expanded="false"
         phx-click={JS.toggle(to: "##{@id}-menu", in: "fade-in-scale", out: "fade-out-scale")}
@@ -39,7 +39,7 @@ defmodule TailsWeb.Common.Dropdown do
       </button>
       <ul id={"#{@id}-menu"} class="hidden py-2 space-y-2" data-cancel={JS.exec(%JS{}, "phx-remove")}>
         <li :for={item <- @item}>
-          <div class="block items-center p-2 pl-11 w-full text-base font-medium text-gray-900 rounded-lg transition duration-75 group dark:text-white ">
+          <div class="block items-center p-2 pl-11 w-full text-base font-medium text-gray-900 rounded-lg group dark:text-white ">
             <%= render_slot(item) %>
           </div>
         </li>
