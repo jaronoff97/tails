@@ -32,8 +32,16 @@ defmodule Tails.Agents do
 
   """
   @spec create_agent(map) :: {:ok, map}
-  def create_agent(attrs) do
-    broadcast({:ok, attrs}, :agent_created)
+  def create_agent(agent) do
+    agent =
+      Map.update(agent, :description, %{}, fn desc ->
+        Map.update(desc, :identifying_attributes, %{}, &convert_to_attrs(&1))
+        |> Map.update(:non_identifying_attributes, %{}, &convert_to_attrs(&1))
+      end)
+
+    # Map.update(agent.description.identifying_attributes
+    # Map.update(agent.description.non_identifying_attributes
+    broadcast({:ok, agent}, :agent_created)
   end
 
   @doc """
@@ -48,8 +56,8 @@ defmodule Tails.Agents do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_agent(_agent, attrs) do
-    broadcast({:ok, attrs}, :agent_updated)
+  def update_agent(_agent, agent) do
+    broadcast({:ok, agent}, :agent_updated)
   end
 
   @doc """
@@ -73,5 +81,24 @@ defmodule Tails.Agents do
       config_hash: :crypto.hash(:md5, Opamp.Proto.AgentConfigMap.encode(conf)),
       config: conf
     }
+  end
+
+  defp convert_to_attrs(opamp_attrs) do
+    Enum.reduce(opamp_attrs, [], fn kv, acc ->
+      acc ++ [%{"key" => kv.key, "value" => %{"stringValue" => get_value(kv)}}]
+    end)
+  end
+
+  defp get_value(nil), do: ""
+
+  defp get_value(kv) do
+    case kv.value.value do
+      {:string_value, v} ->
+        v
+
+      {other, _v} ->
+        IO.puts("unable to retrieve value for type #{other}")
+        ""
+    end
   end
 end
