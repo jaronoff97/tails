@@ -333,7 +333,8 @@ defmodule TailsWeb.TailLive.Index do
 
     {attributes, resource} =
       Enum.reduce(records, current_state, fn record, {attributes, resource} ->
-        {update_kvs(record["attributes"], attributes), update_kvs(record["resource"], resource)}
+        {update_kvs(Map.get(record, "attributes", []), attributes),
+         update_kvs(Map.get(record, "resource", []), resource)}
       end)
 
     socket

@@ -344,6 +344,29 @@ defmodule TailsWeb.TelemetryCase do
                   "id" => "bbc46112-ba32-4bb7-b990-f67aad4bbfa0",
                   "name" => "scrape_duration_seconds",
                   "unit" => "s"
+                },
+                %{
+                  "description" =>
+                    "A summary of the pause duration of garbage collection cycles.",
+                  "name" => "go_gc_duration_seconds",
+                  "summary" => %{
+                    "dataPoints" => [
+                      %{
+                        "attributes" => [],
+                        "count" => "85105",
+                        "quantileValues" => [
+                          %{"value" => 2.0759e-5},
+                          %{"quantile" => 0.25, "value" => 2.7411e-5},
+                          %{"quantile" => 0.5, "value" => 3.593e-5},
+                          %{"quantile" => 0.75, "value" => 4.171e-5},
+                          %{"quantile" => 1, "value" => 0.00103362}
+                        ],
+                        "startTimeUnixNano" => "1712760565274000000",
+                        "sum" => 3.105338845,
+                        "timeUnixNano" => "1712760805274000000"
+                      }
+                    ]
+                  }
                 }
               ],
               "scope" => %{
