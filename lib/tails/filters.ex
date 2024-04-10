@@ -1,6 +1,24 @@
 defmodule Tails.Filters do
   alias Tails.Telemetry
 
+  @doc """
+  Filters records based on the provided filters and resource filters.
+
+  ## Parameters
+    * `stream_name` (atom): The name of the stream.
+    * `message` (map): The message containing the data to filter.
+    * `filters` (list(tuple)): List of tuples representing filters.
+    * `resource_filters` (list(tuple)): List of tuples representing resource filters.
+
+  ## Returns
+  A list of filtered records.
+
+  """
+  @spec get_records(atom, map, list(tuple), list(tuple)) :: list(map)
+  def get_records(_stream_name, %{data: data}, _filters, _resource_filters)
+      when map_size(data) == 0,
+      do: []
+
   def get_records(stream_name, message, filters, resource_filters) do
     message.data[resource_accessor(stream_name)]
     |> Enum.reduce([], fn resourceRecord, resourceAcc ->
@@ -11,6 +29,7 @@ defmodule Tails.Filters do
     end)
   end
 
+  @spec flatten_records(map, atom, list(tuple)) :: list(map)
   defp flatten_records(resourceRecord, stream_name, filters) do
     resourceRecord[scope_accessor(stream_name)]
     |> Enum.flat_map(fn scopeRecord ->
@@ -26,6 +45,18 @@ defmodule Tails.Filters do
     end)
   end
 
+  @doc """
+  Filters attributes based on the provided filters.
+
+  ## Parameters
+    * `attributes` (list(map)): List of attributes to filter.
+    * `filters` (list(tuple)): List of tuples representing filters.
+
+  ## Returns
+  A boolean indicating whether to keep the attributes.
+
+  """
+  @spec keep_attributes?(list(map), list(tuple)) :: boolean
   def keep_attributes?(attributes, filters) do
     initial_state = {contains_action(filters, :include), contains_action(filters, :exclude)}
 
@@ -38,14 +69,23 @@ defmodule Tails.Filters do
 
         attribute["key"] != key ->
           apply_no_key_match(filter) |> next_state(current_state, false)
-
-        true ->
-          current_state
       end
     end)
     |> should_keep()
   end
 
+  @doc """
+  Generates a cartesian product of attributes and filters.
+
+  ## Parameters
+    * `attributes` (list(map)): List of attributes to filter.
+    * `filters` (list(tuple)): List of tuples representing filters.
+
+  ## Returns
+  A list of tuples representing the cartesian product.
+
+  """
+  @spec cartesian(list(map), list(tuple)) :: list(tuple)
   def cartesian(attributes, filters) do
     Stream.flat_map(attributes, fn attribute ->
       Stream.map(filters, fn filter ->
