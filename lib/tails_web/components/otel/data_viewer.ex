@@ -11,10 +11,12 @@ defmodule TailsWeb.Otel.DataViewer do
       <div class="relative mt-6 flex-1 px-4 sm:px-6">
         <div id="data-viewer" phx-update="ignore"></div>
         <textarea id="data_viewer" phx-hook="DataViewer" class="hidden">
-        <%= Jason.encode!(@data, [{:pretty, true}]) %>
+        <%= Jason.encode!(without_resource(@data), [{:pretty, true}]) %>
         </textarea>
       </div>
     <% end %>
     """
   end
+
+  def without_resource(data), do: Map.delete(data, "resource")
 end

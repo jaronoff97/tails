@@ -234,7 +234,7 @@ defmodule Tails.FiltersTest do
 
   test "get_records metric no filters", %{metric_message: metric_message} do
     records = Tails.Filters.get_records(:metrics, metric_message, [], [])
-    assert length(records) == 3
+    assert length(records) == 4
   end
 
   test "get_records metric include filters keep", %{metric_message: metric_message} do
@@ -244,14 +244,14 @@ defmodule Tails.FiltersTest do
 
   test "get_records metric exclude filters toss", %{metric_message: metric_message} do
     records = Tails.Filters.get_records(:metrics, metric_message, [@exclude_test_filter], [])
-    assert length(records) == 2
+    assert length(records) == 3
   end
 
   test "get_records metric include no match filters toss", %{metric_message: metric_message} do
     records =
       Tails.Filters.get_records(:metrics, metric_message, [@nomatch_exclude_test_filter], [])
 
-    assert length(records) == 3
+    assert length(records) == 4
   end
 
   test "get_records metric exclude no match filters keep", %{metric_message: metric_message} do
@@ -263,7 +263,7 @@ defmodule Tails.FiltersTest do
 
   test "get_records metric include resource filters keep", %{metric_message: metric_message} do
     records = Tails.Filters.get_records(:metrics, metric_message, [], [@include_test_filter])
-    assert length(records) == 3
+    assert length(records) == 4
   end
 
   test "get_records metric exclude resource filters toss", %{metric_message: metric_message} do
@@ -277,7 +277,7 @@ defmodule Tails.FiltersTest do
     records =
       Tails.Filters.get_records(:metrics, metric_message, [], [@nomatch_exclude_test_filter])
 
-    assert length(records) == 3
+    assert length(records) == 4
   end
 
   test "get_records metric exclude no match resource filters toss", %{
@@ -308,7 +308,7 @@ defmodule Tails.FiltersTest do
         @include_test_filter
       ])
 
-    assert length(records) == 3
+    assert length(records) == 4
   end
 
   test "get_records metric multiple filters one exclude one include", %{
@@ -322,6 +322,6 @@ defmodule Tails.FiltersTest do
         []
       )
 
-    assert length(records) == 2
+    assert length(records) == 3
   end
 end

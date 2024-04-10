@@ -65,7 +65,7 @@ defmodule Tails.MixProject do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      setup: ["deps.get", "assets.setup", "assets.build", "npm.setup"],
+      setup: ["deps.get", "assets.setup", "npm.setup", "assets.build"],
       "npm.setup": ["cmd --cd assets npm install"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["tailwind default", "esbuild default"],

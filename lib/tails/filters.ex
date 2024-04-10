@@ -152,6 +152,9 @@ defmodule Tails.Filters do
   defp normalize(%{"sum" => %{"dataPoints" => data_points}} = data),
     do: Map.put(data, "attributes", get_attributes_from_metric(data_points))
 
+  defp normalize(%{"summary" => %{"dataPoints" => data_points}} = data),
+    do: Map.put(data, "attributes", get_attributes_from_metric(data_points))
+
   defp normalize(data), do: data
 
   defp get_attributes_from_metric(data_points) do
