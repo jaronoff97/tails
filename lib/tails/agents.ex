@@ -39,8 +39,6 @@ defmodule Tails.Agents do
         |> Map.update(:non_identifying_attributes, %{}, &convert_to_attrs(&1))
       end)
 
-    # Map.update(agent.description.identifying_attributes
-    # Map.update(agent.description.non_identifying_attributes
     broadcast({:ok, agent}, :agent_created)
   end
 

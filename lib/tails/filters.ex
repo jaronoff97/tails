@@ -82,10 +82,10 @@ defmodule Tails.Filters do
     * `filters` (list(tuple)): List of tuples representing filters.
 
   ## Returns
-  A list of tuples representing the cartesian product.
+  A stream of tuples representing the cartesian product.
 
   """
-  @spec cartesian(list(map), list(tuple)) :: list(tuple)
+  @spec cartesian(list(map), list(tuple)) :: Enumerable.t(tuple)
   def cartesian(attributes, filters) do
     Stream.flat_map(attributes, fn attribute ->
       Stream.map(filters, fn filter ->
