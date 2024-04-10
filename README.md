@@ -4,7 +4,15 @@
 | --------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------- |
 | ![home](images/home.jpeg "home screen") | ![filters](images/filters.jpeg "main page with filters applied") | ![clicked](images/clicked.jpeg "clicking a row") | ![config](images/config.jpeg "showing collector opamp") |
 
-tails is a small webserver that listens on a socket and streams live messages from a collector.
+Tails is a small webserver written in elixir that listens on a socket and streams live messages from a collector.
+
+## :tada: Features :tada:
+* Live tailing of data from a running collector
+* Support for metrics, traces and logs
+* Play/Pause mode
+* Raw data viewer
+* OpAMP connection to running collector instance
+* Advanced filtering to drill into specific data
 
 ## Usage
 
