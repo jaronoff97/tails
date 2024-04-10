@@ -56,7 +56,6 @@ defmodule TailsWeb.Common.FilterDropdown do
           phx-change="update_filter"
           phx-target={@myself}
         >
-          <label for="simple-search" class="sr-only">Search</label>
           <div class="relative w-full">
             <input
               type="text"

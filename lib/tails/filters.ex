@@ -1,7 +1,63 @@
 defmodule Tails.Filters do
   alias Tails.Telemetry
 
-  def keep_record(attributes, filters) do
+  @doc """
+  Filters records based on the provided filters and resource filters.
+
+  ## Parameters
+    * `stream_name` (atom): The name of the stream.
+    * `message` (map): The message containing the data to filter.
+    * `filters` (list(tuple)): List of tuples representing filters.
+    * `resource_filters` (list(tuple)): List of tuples representing resource filters.
+
+  ## Returns
+  A list of filtered records.
+
+  """
+  @spec get_records(atom, map, list(tuple), list(tuple)) :: list(map)
+  def get_records(_stream_name, %{data: data}, _filters, _resource_filters)
+      when map_size(data) == 0,
+      do: []
+
+  def get_records(stream_name, message, filters, resource_filters) do
+    message.data[resource_accessor(stream_name)]
+    |> Enum.reduce([], fn resourceRecord, resourceAcc ->
+      case keep_record?(resourceRecord["resource"], resource_filters) do
+        {true, _} -> resourceAcc ++ flatten_records(resourceRecord, stream_name, filters)
+        {false, _} -> resourceAcc
+      end
+    end)
+  end
+
+  @spec flatten_records(map, atom, list(tuple)) :: list(map)
+  defp flatten_records(resourceRecord, stream_name, filters) do
+    resourceRecord[scope_accessor(stream_name)]
+    |> Enum.flat_map(fn scopeRecord ->
+      scopeRecord[record_accessor(stream_name)]
+      |> Enum.reduce([], fn item, acc ->
+        item
+        |> Map.put_new(:id, UUID.uuid4())
+        |> normalize()
+        |> Map.put_new("resource", Map.get(resourceRecord["resource"], "attributes", []))
+        |> keep_record?(filters)
+        |> append_record?(acc)
+      end)
+    end)
+  end
+
+  @doc """
+  Filters attributes based on the provided filters.
+
+  ## Parameters
+    * `attributes` (list(map)): List of attributes to filter.
+    * `filters` (list(tuple)): List of tuples representing filters.
+
+  ## Returns
+  A boolean indicating whether to keep the attributes.
+
+  """
+  @spec keep_attributes?(list(map), list(tuple)) :: boolean
+  def keep_attributes?(attributes, filters) do
     initial_state = {contains_action(filters, :include), contains_action(filters, :exclude)}
 
     attributes
@@ -13,14 +69,23 @@ defmodule Tails.Filters do
 
         attribute["key"] != key ->
           apply_no_key_match(filter) |> next_state(current_state, false)
-
-        true ->
-          current_state
       end
     end)
     |> should_keep()
   end
 
+  @doc """
+  Generates a cartesian product of attributes and filters.
+
+  ## Parameters
+    * `attributes` (list(map)): List of attributes to filter.
+    * `filters` (list(tuple)): List of tuples representing filters.
+
+  ## Returns
+  A stream of tuples representing the cartesian product.
+
+  """
+  @spec cartesian(list(map), list(tuple)) :: Enumerable.t(tuple)
   def cartesian(attributes, filters) do
     Stream.flat_map(attributes, fn attribute ->
       Stream.map(filters, fn filter ->
@@ -42,6 +107,15 @@ defmodule Tails.Filters do
       end
     end)
   end
+
+  defp append_record?({true, record}, acc), do: acc ++ [record]
+  defp append_record?({false, _record}, acc), do: acc
+
+  defp keep_record?(%{"attributes" => attrs} = record, filters),
+    do: {keep_attributes?(attrs, filters), record}
+
+  defp keep_record?(%{} = record, filters),
+    do: {keep_attributes?([], filters), record}
 
   defp apply_no_key_match({:include, _filter}), do: {:include, false}
   defp apply_no_key_match({:exclude, _filter}), do: {:exclude, false}
@@ -68,4 +142,27 @@ defmodule Tails.Filters do
     {action, value_regex} = filter
     {action, Regex.match?(Regex.compile!("^#{value_regex}$"), Telemetry.string_from_value(value))}
   end
+
+  defp normalize(%{"histogram" => %{"dataPoints" => data_points}} = data),
+    do: Map.put(data, "attributes", get_attributes_from_metric(data_points))
+
+  defp normalize(%{"gauge" => %{"dataPoints" => data_points}} = data),
+    do: Map.put(data, "attributes", get_attributes_from_metric(data_points))
+
+  defp normalize(%{"sum" => %{"dataPoints" => data_points}} = data),
+    do: Map.put(data, "attributes", get_attributes_from_metric(data_points))
+
+  defp normalize(data), do: data
+
+  defp get_attributes_from_metric(data_points) do
+    data_points
+    |> Enum.reduce([], fn point, acc -> Map.get(point, "attributes", []) ++ acc end)
+  end
+
+  defp resource_accessor(stream_name),
+    do: "resource#{String.capitalize(Atom.to_string(stream_name))}"
+
+  defp scope_accessor(stream_name), do: "scope#{String.capitalize(Atom.to_string(stream_name))}"
+  defp record_accessor(:logs), do: "logRecords"
+  defp record_accessor(stream_name), do: Atom.to_string(stream_name)
 end

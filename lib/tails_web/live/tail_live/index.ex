@@ -313,7 +313,12 @@ defmodule TailsWeb.TailLive.Index do
   def bulk_insert_records(socket, data_type, message) do
     if socket.assigns.should_stream do
       records =
-        get_records(data_type, message, socket.assigns.filters, socket.assigns.resource_filters)
+        Filters.get_records(
+          data_type,
+          message,
+          socket.assigns.filters,
+          socket.assigns.resource_filters
+        )
 
       socket
       |> assign_available_filters(records)
@@ -321,16 +326,6 @@ defmodule TailsWeb.TailLive.Index do
     else
       socket
     end
-  end
-
-  def get_records(stream_name, message, filters, resource_filters) do
-    message.data[resource_accessor(stream_name)]
-    |> Enum.reduce([], fn resourceRecord, resourceAcc ->
-      case keep_record?(resourceRecord["resource"], resource_filters) do
-        {true, _} -> resourceAcc ++ flatten_records(resourceRecord, stream_name, filters)
-        {false, _} -> resourceAcc
-      end
-    end)
   end
 
   defp assign_available_filters(socket, records) do
@@ -353,78 +348,9 @@ defmodule TailsWeb.TailLive.Index do
     end)
   end
 
-  defp flatten_records(resourceRecord, stream_name, filters) do
-    resourceRecord[scope_accessor(stream_name)]
-    |> Enum.flat_map(fn scopeRecord ->
-      scopeRecord[record_accessor(stream_name)]
-      |> Enum.reduce([], fn item, acc ->
-        item
-        |> Map.put_new(:id, UUID.uuid4())
-        |> normalize()
-        |> Map.put_new("resource", Map.get(resourceRecord["resource"], "attributes", []))
-        |> keep_record?(filters)
-        |> append_record?(acc)
-      end)
-    end)
-  end
-
-  defp append_record?({true, record}, acc), do: acc ++ [record]
-  defp append_record?({false, _record}, acc), do: acc
-
-  defp keep_record?(%{"attributes" => attributes} = record, filters),
-    do: {Filters.keep_record(attributes, filters), record}
-
-  defp keep_record?(%{} = record, filters),
-    do: {Filters.keep_record([], filters), record}
-
-  defp keep_record?(_, filters),
-    do: {Filters.keep_record([], filters), %{}}
-
-  defp resource_accessor(stream_name),
-    do: "resource#{String.capitalize(Atom.to_string(stream_name))}"
-
-  defp scope_accessor(stream_name), do: "scope#{String.capitalize(Atom.to_string(stream_name))}"
-  defp record_accessor(:logs), do: "logRecords"
-  defp record_accessor(stream_name), do: Atom.to_string(stream_name)
-
   defp apply_action(socket, :index, _params) do
     socket
     |> assign(:page_title, "Listing Tails")
     |> assign(:tail, nil)
-  end
-
-  defp normalize(%{"histogram" => %{"dataPoints" => data_points}} = data),
-    do: Map.put(data, "attributes", get_attributes_from_metric(data_points))
-
-  defp normalize(%{"gauge" => %{"dataPoints" => data_points}} = data),
-    do: Map.put(data, "attributes", get_attributes_from_metric(data_points))
-
-  defp normalize(%{"sum" => %{"dataPoints" => data_points}} = data),
-    do: Map.put(data, "attributes", get_attributes_from_metric(data_points))
-
-  defp normalize(data), do: data
-
-  defp get_attributes_from_metric(data_points) do
-    data_points
-    |> Enum.reduce([], fn point, acc -> Map.get(point, "attributes", []) ++ acc end)
-  end
-
-  defp convert_to_attrs(opamp_attrs) do
-    Enum.reduce(opamp_attrs, [], fn kv, acc ->
-      acc ++ [%{"key" => kv.key, "value" => %{"stringValue" => get_value(kv)}}]
-    end)
-  end
-
-  defp get_value(nil), do: ""
-
-  defp get_value(kv) do
-    case kv.value.value do
-      {:string_value, v} ->
-        v
-
-      {other, _v} ->
-        IO.puts("unable to retrieve value for type #{other}")
-        ""
-    end
   end
 end

@@ -20,6 +20,7 @@ defmodule Tails.Telemetry do
   end
 
   def new_message(data) do
+    # IO.inspect(data)
     m = %Message{data: data, id: UUID.uuid4()}
     broadcast({:ok, m}, message_event(data))
   end

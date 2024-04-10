@@ -258,12 +258,12 @@
 
             <Attributes.show
               id="identifying_attrs"
-              data={convert_to_attrs(@agent.description.identifying_attributes)}
+              data={@agent.description.identifying_attributes}
               caption="Identifying Attributes"
             />
             <Attributes.show
               id="nonidentifying_attrs"
-              data={convert_to_attrs(@agent.description.non_identifying_attributes)}
+              data={@agent.description.non_identifying_attributes}
               caption="Non-Identifying Attributes"
             />
           <% end %>
