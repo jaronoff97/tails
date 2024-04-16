@@ -11,6 +11,10 @@ defmodule FilterSidebar do
     String.replace(key, ".", "-")
   end
 
+  defp sorted_attrs(attrs) do
+    Enum.sort_by(attrs, &String.first(elem(&1, 0)))
+  end
+
   def showFilterSidebar(assigns) do
     ~H"""
     <div id="default-sidebar" class="w-80 h-min rounded-lg dark:bg-gray-600">
@@ -52,7 +56,7 @@ defmodule FilterSidebar do
                 Attributes
               </:button>
 
-              <:item :for={{k, values} <- @available_filters} id={"#{k}-attr-item"}>
+              <:item :for={{k, values} <- sorted_attrs(@available_filters)} id={"#{k}-attr-item"}>
                 <.live_component
                   module={FilterDropdown}
                   id={"#{generate_id_from_key(k)}-attribute-filter-dropdown"}
@@ -70,7 +74,10 @@ defmodule FilterSidebar do
                 Resource
               </:button>
 
-              <:item :for={{k, values} <- @available_resource_filters} id={"#{k}-resource-item"}>
+              <:item
+                :for={{k, values} <- sorted_attrs(@available_resource_filters)}
+                id={"#{k}-resource-item"}
+              >
                 <.live_component
                   module={FilterDropdown}
                   id={"#{generate_id_from_key(k)}-resource-filter-dropdown"}

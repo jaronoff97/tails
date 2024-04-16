@@ -8,16 +8,16 @@ defmodule TailsWeb.TailLive.Index do
 
   @columns %{
     :metrics => [
-      "UTC Time",
+      "timeUnixNano",
       "Name",
       "Description"
     ],
     :spans => [
+      "StartTimeUnixNano",
+      "EndTimeUnixNano",
       "TraceId",
       "ParentSpanId",
       "SpanId",
-      "StartTimeUnixNano",
-      "EndTimeUnixNano",
       "Name",
       "Kind",
       "Status"

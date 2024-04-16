@@ -94,7 +94,7 @@ defmodule ResourceTable do
             <tr
               :for={{row_id, row} <- @streams.data}
               id={row_id}
-              class="group hover:bg-zinc-50 dark:text-slate-300"
+              class="group hover:bg-zinc-600 dark:text-slate-300"
             >
               <ResourceData.show
                 data={row}
