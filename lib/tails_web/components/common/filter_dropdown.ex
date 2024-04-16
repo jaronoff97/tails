@@ -1,6 +1,7 @@
 defmodule TailsWeb.Common.FilterDropdown do
   use Phoenix.LiveComponent
   alias Phoenix.LiveView.JS
+  alias TailsWeb.Common.MoreButton
 
   @impl true
   def mount(socket) do
@@ -24,32 +25,39 @@ defmodule TailsWeb.Common.FilterDropdown do
   def render(assigns) do
     ~H"""
     <div class="relative" data-component={"#{@id}-dropdown"}>
-      <button
-        type="button"
-        class="flex items-center w-full"
-        id={"#{@id}-button"}
-        aria-expanded="false"
-        phx-target={@myself}
-        phx-click={JS.toggle(to: "##{@id}-menu", in: "fade-in-scale", out: "fade-out-scale")}
-      >
-        <span class="flex-1 ml-3 text-left whitespace-nowrap">
-          <%= @button_title %>
-        </span>
-        <svg
-          aria-hidden="true"
-          class="w-6 h-6"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-          xmlns="http://www.w3.org/2000/svg"
+      <div class="flex">
+        <button
+          type="button"
+          class="flex items-center w-full  rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-50 dark:focus:ring-gray-600"
+          id={"#{@id}-button"}
+          aria-expanded="false"
+          phx-target={@myself}
+          phx-click={JS.toggle(to: "##{@id}-menu", in: "fade-in-scale", out: "fade-out-scale")}
         >
-          <path
-            fill-rule="evenodd"
-            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-            clip-rule="evenodd"
+          <span class="flex-1 ml-3 text-left whitespace-nowrap">
+            <%= @button_title %>
+          </span>
+          <svg
+            aria-hidden="true"
+            class="w-6 h-6"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+            xmlns="http://www.w3.org/2000/svg"
           >
-          </path>
-        </svg>
-      </button>
+            <path
+              fill-rule="evenodd"
+              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+              clip-rule="evenodd"
+            >
+            </path>
+          </svg>
+        </button>
+        <%!-- <MoreButton.more id={"#{@id}-more"}>
+          <:item id={"#{@id}-test"}>
+            test
+          </:item>
+        </MoreButton.more> --%>
+      </div>
       <div class="hidden py-2 space-y-2" id={"#{@id}-menu"} data-cancel={JS.exec(%JS{}, "phx-remove")}>
         <form
           class="flex items-center max-w-sm mx-auto"
@@ -73,30 +81,6 @@ defmodule TailsWeb.Common.FilterDropdown do
             <div class="block items-center p-2 pl-11 w-full text-base font-medium">
               <div>
                 <div class="flex items-center">
-                  <button
-                    id={"#{@id}-#{v}-column"}
-                    phx-value-column_type={@filter_type}
-                    phx-value-key={@key}
-                    phx-click="update_columns"
-                  >
-                    <svg
-                      class="w-[20px] h-[20px] text-gray-800 dark:text-white"
-                      aria-hidden="true"
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke="currentColor"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M15 5v14M9 5v14M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"
-                      />
-                    </svg>
-                  </button>
                   <button
                     id={"#{@id}-#{v}-include"}
                     phx-value-filter_type={@filter_type}
