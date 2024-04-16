@@ -1,7 +1,7 @@
 defmodule TailsWeb.Common.FilterDropdown do
   use Phoenix.LiveComponent
   alias Phoenix.LiveView.JS
-  alias TailsWeb.Common.MoreButton
+  # alias TailsWeb.Common.MoreButton
 
   @impl true
   def mount(socket) do

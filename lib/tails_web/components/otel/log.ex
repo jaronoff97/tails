@@ -36,7 +36,6 @@ defmodule TailsWeb.Otel.Log do
   end
 
   defp convert_to_readable(timeUnixNano) do
-    {:ok, epoch} = Time.new(0, 0, 0)
     {nano, _remainder} = Integer.parse(timeUnixNano, 10)
 
     {:ok, _date, {hour, minute, second}, {_nanos, _other}} =
