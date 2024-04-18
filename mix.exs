@@ -14,7 +14,19 @@ defmodule Tails.MixProject do
         # Put the project-level PLT in the priv/ directory (instead of the default _build/ location)
         plt_file: {:no_warn, "priv/plts/project.plt"},
         plt_add_apps: [:ex_unit]
-      ]
+      ],
+      package: package()
+    ]
+  end
+
+  defp package do
+    [
+      description:
+        "A small application that allows you to tail the live telemetry of an otel collector",
+      files: ["lib", "mix.exs", "README.md"],
+      maintainers: ["Jacob Aronoff"],
+      licenses: ["Apache-2.0"],
+      links: %{"GitHub" => "https://github.com/jaronoff97/tails"}
     ]
   end
 

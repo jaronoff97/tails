@@ -12,6 +12,7 @@ config :tails,
 
 # Configures the endpoint
 config :tails, TailsWeb.Endpoint,
+  server: true,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
