@@ -6,8 +6,7 @@ defmodule Tails.RemoteTapClient do
       {"Origin", "http://localhost"}
     ]
 
-    url = "ws://localhost:12001"
-    # IO.puts("starting link!!!")
+    url = System.get_env("REMOTE_TAP_ENDPOINT") || "ws://localhost:12001"
 
     WebSockex.start_link(url, __MODULE__, state,
       insecure: true,
