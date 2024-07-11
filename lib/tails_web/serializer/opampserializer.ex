@@ -94,24 +94,25 @@ defmodule TailsWeb.OpAMPSerializer do
          data::binary
        >>) do
     proto = Opamp.Proto.AgentToServer.decode(data)
+    instance_uuid = UUID.binary_to_string!(proto.instance_uid)
     # IO.puts("-----------------------")
     # IO.puts("is a memember?")
     # IO.inspect(Agent.get(:connections, &MapSet.member?(&1, proto.instance_uid)))
     # IO.inspect(Agent.get(:connections, &MapSet.to_list/1))
     # IO.puts("-----------------------")
 
-    case Agent.get(:connections, &MapSet.member?(&1, proto.instance_uid)) do
-      false -> respond_join(proto)
-      true -> respond_heartbeat(proto)
+    case Agent.get(:connections, &MapSet.member?(&1, instance_uuid)) do
+      false -> respond_join(proto, instance_uuid)
+      true -> respond_heartbeat(proto, instance_uuid)
     end
   end
 
-  defp respond_join(proto) do
-    Agent.update(:connections, &MapSet.put(&1, proto.instance_uid))
+  defp respond_join(proto, instance_uuid) do
+    Agent.update(:connections, &MapSet.put(&1, instance_uuid))
     IO.puts("JOINING")
 
     %Message{
-      topic: "agents:" <> proto.instance_uid,
+      topic: "agents:" <> instance_uuid,
       event: "phx_join",
       payload: proto,
       ref: proto.sequence_num,
@@ -119,9 +120,9 @@ defmodule TailsWeb.OpAMPSerializer do
     }
   end
 
-  defp respond_heartbeat(proto) when proto.sequence_num > 0 do
+  defp respond_heartbeat(proto, instance_uuid) when proto.sequence_num > 0 do
     %Message{
-      topic: "agents:" <> proto.instance_uid,
+      topic: "agents:" <> instance_uuid,
       event: "heartbeat",
       payload: proto,
       ref: proto.sequence_num,
