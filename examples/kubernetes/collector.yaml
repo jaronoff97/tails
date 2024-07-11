@@ -1,0 +1,44 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: tails-example
+spec:
+  image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.103.0
+  additionalContainers:
+    - name: tails
+      image: ghcr.io/jaronoff97/tails:v0.0.8
+      env:
+        - name: SECRET_KEY_BASE
+          value: agbCd+/i9v3Ep8D6HPZVTN+ukg+dzZbOkrdgbBCC+P8nLzDUhihMv/fdF2Nz30lX
+      ports:
+        - containerPort: 4000
+  config:
+    extensions:
+      opamp:
+        server:
+          ws:
+            endpoint: ws://127.0.0.1:4000/v1/opamp
+            tls:
+              insecure: true
+    receivers:
+      otlp:
+        protocols:
+          grpc: {}
+          http: {}
+    processors:
+      remotetap:
+        endpoint: localhost:12001
+      batch:
+        send_batch_size: 10000
+        timeout: 10s
+
+    exporters:
+      debug: {}
+
+    service:
+      extensions: [opamp]
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [remotetap, batch]
+          exporters: [debug]
