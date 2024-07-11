@@ -20,6 +20,8 @@ Tails is primarily used as a sidecar to your collector. The goal of Tails is to 
 
 > NOTE: Make sure to use the appropriate docker container for your environment (currently an amd and arm image are published)
 
+For example usage in Kubernetes, visit the example [here](examples/kubernetes/README.md)
+
 ## Collector configuration
 
 At a minimum for tails to function, you must use the [remotetap processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/remotetapprocessor) in your collector's configuration. Tails expects to connect to the collector's remotetap processor on _port 12001_ (this will be configurable in the future). It is also recommended to use the [opampextension](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/opampextension) so that you can view the health and configuration for your collector. Here's a minimum sample configuration for a collector with these configured (tested with version 0.97.0 of the collector):
