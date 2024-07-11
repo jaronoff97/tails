@@ -320,7 +320,11 @@ defmodule Opamp.Proto.PackagesAvailable do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field(:packages, 1, repeated: true, type: Opamp.Proto.PackagesAvailable.PackagesEntry, map: true)
+  field(:packages, 1,
+    repeated: true,
+    type: Opamp.Proto.PackagesAvailable.PackagesEntry,
+    map: true
+  )
 
   field(:all_packages_hash, 2, type: :bytes, json_name: "allPackagesHash")
 end
