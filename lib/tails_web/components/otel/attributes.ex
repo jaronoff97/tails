@@ -4,15 +4,28 @@ defmodule TailsWeb.Otel.Attributes do
   alias Tails.Telemetry
 
   def show(assigns) do
-    ~H"""
-    <div>
-      <.table id={@id} rows={@data} caption={@caption}>
-        <:col :let={attribute} label="key"><%= attribute["key"] %></:col>
-        <:col :let={attribute} label="value">
-          <%= Telemetry.string_from_value(attribute["value"]) %>
-        </:col>
-      </.table>
-    </div>
-    """
+    if assigns[:data] == nil do
+      ~H"""
+      <div>
+        <.table id={@id} rows={[]} caption={@caption}>
+          <:col :let={attribute} label="key"><%= attribute["key"] %></:col>
+          <:col :let={attribute} label="value">
+            <%= Telemetry.string_from_value(attribute["value"]) %>
+          </:col>
+        </.table>
+      </div>
+      """
+    else
+      ~H"""
+      <div>
+        <.table id={@id} rows={@data} caption={@caption}>
+          <:col :let={attribute} label="key"><%= attribute["key"] %></:col>
+          <:col :let={attribute} label="value">
+            <%= Telemetry.string_from_value(attribute["value"]) %>
+          </:col>
+        </.table>
+      </div>
+      """
+    end
   end
 end
