@@ -33,9 +33,9 @@ export function DataTable({
   }
 
   return (
-    <div className="flex-1 overflow-x-auto">
+    <div className="flex-1 overflow-auto">
       <table className="w-full text-sm text-left">
-        <thead className="text-xs uppercase bg-zinc-50 dark:bg-zinc-800 sticky top-0">
+        <thead className="text-xs uppercase bg-zinc-50 dark:bg-zinc-800 sticky top-0 z-10">
           <tr>
             {columns.map((col) => (
               <th key={col} className="px-3 py-2 font-medium text-zinc-600 dark:text-zinc-300">

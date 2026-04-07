@@ -77,7 +77,7 @@ export function TailsApp({ stream_options = [], columns = {} }: TailsAppProps) {
   const activeColumns = columns?.[activeStream] || []
 
   return (
-    <div className="min-h-screen">
+    <div className="h-screen flex flex-col overflow-hidden">
       <Header
         shouldStream={shouldStream}
         remoteTapStarted={remoteTapStarted}
@@ -88,66 +88,64 @@ export function TailsApp({ stream_options = [], columns = {} }: TailsAppProps) {
         onShowConfig={() => setCollectorOpen(true)}
       />
 
-      <main className="px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-full">
-          <hr className="border-zinc-200 dark:border-zinc-600" />
+      <div className="px-4 sm:px-6 lg:px-8 shrink-0">
+        <hr className="border-zinc-200 dark:border-zinc-600" />
 
-          <FilterBadges
-            filters={filters}
-            resourceFilters={resourceFilters}
-            onRemoveFilter={(key, filterType) =>
-              push('remove_attr_filter', { key, filter_type: filterType })
-            }
-          />
+        <FilterBadges
+          filters={filters}
+          resourceFilters={resourceFilters}
+          onRemoveFilter={(key, filterType) =>
+            push('remove_attr_filter', { key, filter_type: filterType })
+          }
+        />
 
-          <hr className="border-zinc-200 dark:border-zinc-600" />
+        <hr className="border-zinc-200 dark:border-zinc-600" />
+      </div>
 
-          <Slideover open={collectorOpen} onClose={() => setCollectorOpen(false)}>
-            <CollectorPanel agent={agent} />
-          </Slideover>
+      <Slideover open={collectorOpen} onClose={() => setCollectorOpen(false)}>
+        <CollectorPanel agent={agent} />
+      </Slideover>
 
-          <Slideover open={rowDataOpen} onClose={() => setRowDataOpen(false)}>
-            <DataViewer data={selectedRow} />
-          </Slideover>
-        </div>
+      <Slideover open={rowDataOpen} onClose={() => setRowDataOpen(false)}>
+        <DataViewer data={selectedRow} />
+      </Slideover>
 
-        <div className="flex mt-6 gap-4">
-          <FilterSidebar
-            availableFilters={availableFilters}
-            availableResourceFilters={availableResourceFilters}
-            streamOptions={stream_options}
-            activeStream={activeStream}
-            onChangeStream={(value) => push('change_stream', { value })}
-            onUpdateFilter={(filterType, key, action, val) =>
-              push('update_filters', {
-                filter_type: filterType,
-                key,
-                action,
-                val,
-                value: '',
-              })
-            }
-            onAddColumn={(columnType, key) =>
-              push('update_columns', { column_type: columnType, key })
-            }
-          />
+      <div className="flex flex-1 min-h-0 px-4 sm:px-6 lg:px-8 mt-2 gap-4">
+        <FilterSidebar
+          availableFilters={availableFilters}
+          availableResourceFilters={availableResourceFilters}
+          streamOptions={stream_options}
+          activeStream={activeStream}
+          onChangeStream={(value) => push('change_stream', { value })}
+          onUpdateFilter={(filterType, key, action, val) =>
+            push('update_filters', {
+              filter_type: filterType,
+              key,
+              action,
+              val,
+              value: '',
+            })
+          }
+          onAddColumn={(columnType, key) =>
+            push('update_columns', { column_type: columnType, key })
+          }
+        />
 
-          <DataTable
-            columns={activeColumns}
-            customColumns={customColumns}
-            resourceColumns={resourceColumns}
-            records={records}
-            remoteTapStarted={remoteTapStarted}
-            onRowClick={(row) => {
-              setSelectedRow(row)
-              setRowDataOpen(true)
-            }}
-            onRemoveColumn={(column, columnType) =>
-              push('remove_column', { column, column_type: columnType })
-            }
-          />
-        </div>
-      </main>
+        <DataTable
+          columns={activeColumns}
+          customColumns={customColumns}
+          resourceColumns={resourceColumns}
+          records={records}
+          remoteTapStarted={remoteTapStarted}
+          onRowClick={(row) => {
+            setSelectedRow(row)
+            setRowDataOpen(true)
+          }}
+          onRemoveColumn={(column, columnType) =>
+            push('remove_column', { column, column_type: columnType })
+          }
+        />
+      </div>
     </div>
   )
 }

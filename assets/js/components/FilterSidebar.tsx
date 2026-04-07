@@ -20,7 +20,7 @@ export function FilterSidebar({
   onAddColumn,
 }: FilterSidebarProps) {
   return (
-    <div className="w-64 shrink-0 space-y-4">
+    <div className="w-64 shrink-0 space-y-4 overflow-y-auto">
       <div className="space-y-2">
         <h3 className="text-sm font-semibold">Telemetry Type</h3>
         {streamOptions.map((opt) => (
