@@ -43,3 +43,8 @@ config :phoenix, :plug_init_mode, :runtime
 
 # Include HEEx debug annotations as HTML comments in rendered markup
 config :phoenix_live_view, :debug_heex_annotations, true
+
+# LiveReact / Vite dev server
+config :tails,
+  vite_host: "http://localhost:5173",
+  ssr_module: LiveReact.SSR.ViteJS
