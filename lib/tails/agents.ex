@@ -1,7 +1,9 @@
 defmodule Tails.Agents do
   @moduledoc """
-  The Agents context.
+  The Agents context. Manages PubSub for agent events.
   """
+
+  alias Tails.OpAMP.Helpers
 
   def subscribe do
     Phoenix.PubSub.subscribe(Tails.PubSub, "agents")
@@ -11,67 +13,9 @@ defmodule Tails.Agents do
     Phoenix.PubSub.subscribe(Tails.PubSub, "agents:" <> agent_id)
   end
 
-  @spec broadcast({:ok, map}, atom) :: {:ok, map}
-  defp broadcast({:ok, agent}, event) do
-    :ok = Phoenix.PubSub.broadcast(Tails.PubSub, "agents", {event, agent})
-    :ok = Phoenix.PubSub.broadcast(Tails.PubSub, "agents:" <> agent.id, {event, agent})
-    {:ok, agent}
-  end
-
   @spec request_latest_config() :: :ok | {:error, term()}
-  def request_latest_config,
-    do: Phoenix.PubSub.broadcast(Tails.PubSub, "agents", {:request_config, %{}})
-
-  @doc """
-  Creates a agent.
-
-  ## Examples
-
-      iex> create_agent(%{field: value})
-      {:ok, %{}}
-
-  """
-  @spec create_agent(map) :: {:ok, map}
-  def create_agent(agent) do
-    agent =
-      Map.update(agent, :description, %{}, fn desc ->
-        Map.update(desc, :identifying_attributes, %{}, &convert_to_attrs(&1))
-        |> Map.update(:non_identifying_attributes, %{}, &convert_to_attrs(&1))
-      end)
-
-    broadcast({:ok, agent}, :agent_created)
-  end
-
-  @doc """
-  Updates a agent.
-
-  ## Examples
-
-      iex> update_agent(agent, %{field: new_value})
-      {:ok, %Agent{}}
-
-      iex> update_agent(agent, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def update_agent(_agent, agent) do
-    broadcast({:ok, agent}, :agent_updated)
-  end
-
-  @doc """
-  Deletes a agent.
-
-  ## Examples
-
-      iex> delete_agent(agent)
-      {:ok, %Agent{}}
-
-      iex> delete_agent(agent)
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def delete_agent(agent) do
-    broadcast({:ok, agent}, :agent_deleted)
+  def request_latest_config do
+    Phoenix.PubSub.broadcast(Tails.PubSub, "agents", {:request_config, %{}})
   end
 
   def generate_desired_remote_config(conf) do
@@ -81,22 +25,23 @@ defmodule Tails.Agents do
     }
   end
 
-  defp convert_to_attrs(opamp_attrs) do
-    Enum.reduce(opamp_attrs, [], fn kv, acc ->
-      acc ++ [%{"key" => kv.key, "value" => %{"stringValue" => get_value(kv)}}]
-    end)
+  def get_agent_state do
+    Tails.OpAMP.Server.get_state()
   end
 
-  defp get_value(nil), do: ""
+  def agent_attributes(description) when is_map(description) and map_size(description) > 0 do
+    identifying =
+      description
+      |> Map.get(:identifying_attributes, [])
+      |> Helpers.attributes_to_map(cast_string: true)
 
-  defp get_value(kv) do
-    case kv.value.value do
-      {:string_value, v} ->
-        v
+    non_identifying =
+      description
+      |> Map.get(:non_identifying_attributes, [])
+      |> Helpers.attributes_to_map(cast_string: true)
 
-      {other, _v} ->
-        IO.puts("unable to retrieve value for type #{other}")
-        ""
-    end
+    Map.merge(identifying, non_identifying)
   end
+
+  def agent_attributes(_), do: %{}
 end

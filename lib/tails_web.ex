@@ -87,6 +87,9 @@ defmodule TailsWeb do
       import TailsWeb.CoreComponents
       import TailsWeb.Gettext
 
+      # LiveReact component rendering
+      import LiveReact
+
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
 

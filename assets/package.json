@@ -1,11 +1,34 @@
 {
+  "name": "tails",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host -l warn",
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.5.7",
+    "@tailwindcss/vite": "^4.1.4",
+    "@types/phoenix": "^1.6.6",
+    "@types/phoenix_live_view": "^1.0.0",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "typescript": "^5.6.2",
+    "vite": "^6.3.3"
+  },
   "dependencies": {
     "@codemirror/lang-json": "^6.0.1",
     "@codemirror/language": "^6.3.1",
     "@codemirror/legacy-modes": "^6.3.1",
-    "@codemirror/stream-parser": "^0.19.9",
     "@codemirror/theme-one-dark": "^6.1.2",
     "codemirror": "^6.0.1",
-    "thememirror": "^2.0.1"
+    "phoenix": "file:../deps/phoenix",
+    "phoenix_html": "file:../deps/phoenix_html",
+    "phoenix_live_view": "file:../deps/phoenix_live_view",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tailwindcss": "^4.1.8",
+    "thememirror": "^2.0.1",
+    "topbar": "^2.0.2"
   }
 }

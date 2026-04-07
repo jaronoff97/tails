@@ -1,18 +1,11 @@
 defmodule TailsWeb.TailLive.Index do
   use TailsWeb, :live_view
 
-  alias TailsWeb.Common.{Buttons, Slideover}
   alias Tails.{Telemetry, Agents, Filters}
-  alias TailsWeb.Otel.{Attributes, DataViewer}
-  @stream_limit 1000
 
   @columns %{
-    :metrics => [
-      "timeUnixNano",
-      "Name",
-      "Description"
-    ],
-    :spans => [
+    metrics: ["timeUnixNano", "Name", "Description"],
+    spans: [
       "StartTimeUnixNano",
       "EndTimeUnixNano",
       "TraceId",
@@ -22,203 +15,137 @@ defmodule TailsWeb.TailLive.Index do
       "Kind",
       "Status"
     ],
-    :logs => [
-      "timeUnixNano",
-      "severityText",
-      "spanId",
-      "body"
-    ]
+    logs: ["timeUnixNano", "severityText", "spanId", "body"]
   }
 
   @impl true
   def mount(_params, _session, socket) do
     if connected?(socket) do
       :ok = Telemetry.subscribe()
-    end
-
-    if connected?(socket) do
       :ok = Agents.subscribe()
     end
 
     {:ok,
      socket
-     |> stream(:data, [], at: -1, limit: -@stream_limit)
-     |> assign(:modal_attributes, %{})
-     |> assign(:modal_type, "attributes")
-     |> assign(:active_raw_data, %{})
-     |> assign(:agent, %{})
      |> assign(:columns, @columns)
-     |> assign(:custom_columns, MapSet.new([]))
-     |> assign(:resource_columns, MapSet.new([]))
+     |> assign(:custom_columns, MapSet.new())
+     |> assign(:resource_columns, MapSet.new())
      |> assign(:available_filters, %{})
      |> assign(:available_resource_filters, %{})
      |> assign(:filters, %{})
      |> assign(:resource_filters, %{})
      |> assign(:remote_tap_started, false)
      |> assign(:should_stream, true)
-     |> assign(:stream_options, get_options())
-     |> assign(:active_stream, :spans)}
+     |> assign(:active_stream, :spans)
+     |> assign(:page_title, "Tails")}
   end
 
+  # Events from React via pushEvent
+
   @impl true
-  def handle_event("change_stream", params, socket) do
+  def handle_event("change_stream", %{"value" => value}, socket) do
+    stream = String.to_existing_atom(String.downcase(value))
+
     {:noreply,
      socket
-     |> assign(:active_stream, String.to_existing_atom(String.downcase(params["value"])))
-     |> stream(:data, [], reset: true)}
+     |> assign(:active_stream, stream)
+     |> push_state_update()
+     |> push_event("reset_records", %{})}
   end
 
   @impl true
-  def handle_event("toggle_stream", _value, socket) do
+  def handle_event("toggle_stream", _params, socket) do
     {:noreply,
      socket
-     |> assign(:should_stream, !socket.assigns.should_stream)}
+     |> assign(:should_stream, !socket.assigns.should_stream)
+     |> push_state_update()}
   end
 
   @impl true
-  def handle_event("toggle_navbar_menu", _value, socket) do
-    # JS.toggle(to: "#menu", in: "fade-in-scale", out: "fade-out-scale")
-    {:noreply,
-     socket
-     |> push_event("js-exec", %{to: "#collector", attr: "data-show"})}
-  end
-
-  @impl true
-  def handle_event("toggle_remote_tap", _value, socket) do
+  def handle_event("toggle_remote_tap", _params, socket) do
     case toggle_remote_tap(socket) do
-      {:ok, socket} ->
-        {:noreply, socket}
-
-      {:error, socket} ->
-        {:noreply, socket}
+      {:ok, socket} -> {:noreply, push_state_update(socket)}
+      {:error, socket} -> {:noreply, socket}
     end
   end
 
   @impl true
-  def handle_event("request_config", _value, socket) do
-    :ok = request_new_config(socket)
+  def handle_event("request_config", _params, socket) do
+    if !Map.has_key?(socket.assigns, :agent) or socket.assigns[:agent] == %{} do
+      Agents.request_latest_config()
+    end
+
     {:noreply, socket}
   end
 
   @impl true
-  def handle_event("slideover_cancel", _value, socket) do
+  def handle_event("update_columns", %{"column_type" => ct, "key" => key}, socket) do
+    col_type = column_from_string(ct)
+
     {:noreply,
      socket
-     |> push_event("js-exec", %{to: "#menu", attr: "data-cancel"})
-     |> assign(:active_raw_data, %{})}
+     |> assign(col_type, MapSet.put(socket.assigns[col_type], key))
+     |> push_state_update()
+     |> push_event("reset_records", %{})}
   end
 
   @impl true
-  def handle_event("row_clicked", value, socket) do
-    {:noreply,
-     socket
-     |> assign(:active_raw_data, value)
-     |> push_event("js-exec", %{to: "#row-data", attr: "data-show"})}
-  end
+  def handle_event("remove_column", %{"column" => col, "column_type" => ct}, socket) do
+    col_type = column_from_string(ct)
 
-  @impl true
-  def handle_event(
-        "update_columns",
-        %{
-          "column_type" => column_type_string,
-          "key" => key
-        },
-        socket
-      ) do
     {:noreply,
      socket
-     |> update_columns(
-       column_from_string(column_type_string),
-       key,
-       :add
-     )}
+     |> assign(col_type, MapSet.delete(socket.assigns[col_type], col))
+     |> push_state_update()
+     |> push_event("reset_records", %{})}
   end
 
   @impl true
   def handle_event(
         "update_filters",
-        %{
-          "action" => action,
-          "filter_type" => filter_type_string,
-          "key" => key,
-          "val" => val,
-          "value" => _value
-        },
+        %{"action" => action, "filter_type" => ft, "key" => key, "val" => val},
         socket
       ) do
+    filter_type = filter_from_string(ft)
+
     {:noreply,
      socket
-     |> update_filters(
-       filter_from_string(filter_type_string),
-       key,
-       String.to_atom(action),
-       val,
-       :add
-     )}
+     |> assign(filter_type, Map.put(socket.assigns[filter_type], key, {String.to_atom(action), val}))
+     |> push_state_update()
+     |> push_event("reset_records", %{})}
   end
 
   @impl true
-  def handle_event(
-        "remove_column",
-        %{"column" => column, "column_type" => column_type_string},
-        socket
-      ) do
+  def handle_event("remove_attr_filter", %{"key" => key, "filter_type" => ft}, socket) do
+    filter_type = filter_from_string(ft)
+
     {:noreply,
      socket
-     |> put_flash(:info, "column removed, data reset")
-     |> update_columns(column_from_string(column_type_string), column, :remove)}
+     |> assign(filter_type, Map.delete(socket.assigns[filter_type], key))
+     |> push_state_update()
+     |> push_event("reset_records", %{})}
   end
 
   @impl true
-  def handle_event(
-        "remove_attr_filter",
-        %{"key" => key, "filter_type" => filter_type_string},
-        socket
-      ) do
-    {:noreply,
-     socket
-     |> put_flash(:info, "filter removed, data reset")
-     |> update_filters(
-       filter_from_string(filter_type_string),
-       key,
-       nil,
-       nil,
-       :remove
-     )}
+  def handle_event("row_clicked", value, socket) do
+    {:noreply, socket |> assign(:active_raw_data, value)}
+  end
+
+  # PubSub callbacks
+
+  @impl true
+  def handle_info({:agent_updated, message}, socket) do
+    {:noreply, push_event(socket, "agent_update", serialize_agent(message))}
   end
 
   @impl true
-  def handle_params(params, _url, socket) do
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  def handle_info({:agent_disconnected, _message}, socket) do
+    {:noreply, push_event(socket, "agent_update", %{})}
   end
 
   @impl true
   def handle_info({:agent_deleted, _message}, socket) do
-    {:noreply,
-     socket
-     |> assign(:agent, %{})}
-  end
-
-  @impl true
-  def handle_info({:agent_updated, message}, socket) do
-    {:noreply,
-     socket
-     |> assign(:agent, message)}
-  end
-
-  @impl true
-  def handle_info({:agent_created, message}, socket) do
-    if socket.assigns.remote_tap_started do
-      {:noreply, assign(socket, :agent, message)}
-    else
-      case toggle_remote_tap(socket) do
-        {:ok, socket} ->
-          {:noreply, assign(socket, :agent, message)}
-
-        {:error, socket} ->
-          {:noreply, socket}
-      end
-    end
+    {:noreply, push_event(socket, "agent_update", %{})}
   end
 
   @impl true
@@ -228,63 +155,67 @@ defmodule TailsWeb.TailLive.Index do
 
   @impl true
   def handle_info({data_type, message}, socket) do
-    if data_type != socket.assigns.active_stream do
+    if data_type != socket.assigns.active_stream or not socket.assigns.should_stream do
       {:noreply, socket}
     else
+      records =
+        Filters.get_records(
+          data_type,
+          message,
+          socket.assigns.filters,
+          socket.assigns.resource_filters
+        )
+
+      socket = assign_available_filters(socket, records)
+
       {:noreply,
        socket
-       |> bulk_insert_records(data_type, message)}
+       |> push_event("records", %{records: records})
+       |> push_state_update()}
     end
   end
 
-  defp filter_from_string(filter_type_string) when filter_type_string == "resource",
-    do: :resource_filters
-
-  defp filter_from_string(filter_type_string) when filter_type_string == "attributes",
-    do: :filters
-
-  defp column_from_string(column_type_string) when column_type_string == "resource",
-    do: :resource_columns
-
-  defp column_from_string(column_type_string) when column_type_string == "attributes",
-    do: :custom_columns
-
-  defp update_columns(socket, column_type, key, :add) do
-    socket
-    |> assign(column_type, MapSet.put(socket.assigns[column_type], key))
-    |> stream(:data, [], reset: true)
+  @impl true
+  def handle_params(_params, _url, socket) do
+    {:noreply, socket}
   end
 
-  defp update_columns(socket, column_type, key, :remove) do
-    socket
-    |> assign(column_type, MapSet.delete(socket.assigns[column_type], key))
-    |> stream(:data, [], reset: true)
+  # Helpers
+
+  defp push_state_update(socket) do
+    push_event(socket, "state_update", %{
+      should_stream: socket.assigns.should_stream,
+      remote_tap_started: socket.assigns.remote_tap_started,
+      active_stream: Atom.to_string(socket.assigns.active_stream),
+      custom_columns: MapSet.to_list(socket.assigns.custom_columns),
+      resource_columns: MapSet.to_list(socket.assigns.resource_columns),
+      filters:
+        Map.new(socket.assigns.filters, fn {k, {action, val}} ->
+          {k, [Atom.to_string(action), val]}
+        end),
+      resource_filters:
+        Map.new(socket.assigns.resource_filters, fn {k, {action, val}} ->
+          {k, [Atom.to_string(action), val]}
+        end),
+      available_filters:
+        Map.new(socket.assigns.available_filters, fn {k, v} -> {k, MapSet.to_list(v)} end),
+      available_resource_filters:
+        Map.new(socket.assigns.available_resource_filters, fn {k, v} ->
+          {k, MapSet.to_list(v)}
+        end)
+    })
   end
 
-  defp update_filters(socket, filter_type, key, action, val, :add) do
-    socket
-    |> assign(filter_type, Map.put(socket.assigns[filter_type], key, {action, val}))
-    |> stream(:data, [], reset: true)
-  end
+  defp filter_from_string("resource"), do: :resource_filters
+  defp filter_from_string("attributes"), do: :filters
 
-  defp update_filters(socket, filter_type, key, _action, _val, :remove) do
-    socket
-    |> assign(filter_type, Map.delete(socket.assigns[filter_type], key))
-    |> stream(:data, [], reset: true)
-  end
+  defp column_from_string("resource"), do: :resource_columns
+  defp column_from_string("attributes"), do: :custom_columns
 
-  defp request_new_config(socket) do
-    if !Map.has_key?(socket.assigns.agent, :effective_config) do
-      Agents.request_latest_config()
-    else
-      :ok
-    end
-  end
-
-  def get_options() do
+  def get_options do
     [:metrics, :spans, :logs]
     |> Enum.map(fn a ->
-      %{stream: a, id: Atom.to_string(a), name: String.capitalize(Atom.to_string(a))}
+      %{stream: Atom.to_string(a), id: Atom.to_string(a), name: String.capitalize(Atom.to_string(a))}
     end)
   end
 
@@ -310,24 +241,6 @@ defmodule TailsWeb.TailLive.Index do
     end
   end
 
-  def bulk_insert_records(socket, data_type, message) do
-    if socket.assigns.should_stream do
-      records =
-        Filters.get_records(
-          data_type,
-          message,
-          socket.assigns.filters,
-          socket.assigns.resource_filters
-        )
-
-      socket
-      |> assign_available_filters(records)
-      |> stream(:data, records, at: 0, limit: -@stream_limit)
-    else
-      socket
-    end
-  end
-
   defp assign_available_filters(socket, records) do
     current_state = {socket.assigns.available_filters, socket.assigns.available_resource_filters}
 
@@ -349,9 +262,59 @@ defmodule TailsWeb.TailLive.Index do
     end)
   end
 
-  defp apply_action(socket, :index, _params) do
-    socket
-    |> assign(:page_title, "Listing Tails")
-    |> assign(:tail, nil)
+  defp serialize_agent(agent) do
+    %{
+      id: agent[:id],
+      connected: agent[:connected],
+      description: serialize_description(agent[:description]),
+      effective_config: serialize_effective_config(agent[:effective_config]),
+      component_health: serialize_health(agent[:component_health]),
+      remote_config_status: serialize_remote_config_status(agent[:remote_config_status])
+    }
   end
+
+  defp serialize_description(%Opamp.Proto.AgentDescription{} = d) do
+    %{
+      identifying_attributes: serialize_kvs(d.identifying_attributes),
+      non_identifying_attributes: serialize_kvs(d.non_identifying_attributes)
+    }
+  end
+
+  defp serialize_description(_), do: nil
+
+  defp serialize_kvs(attrs) when is_list(attrs) do
+    Enum.map(attrs, fn %Opamp.Proto.KeyValue{key: k, value: v} ->
+      %{key: k, value: Tails.OpAMP.Helpers.clean_any_value(v) || ""}
+    end)
+  end
+
+  defp serialize_kvs(_), do: []
+
+  defp serialize_effective_config(%Opamp.Proto.EffectiveConfig{
+         config_map: %Opamp.Proto.AgentConfigMap{config_map: cm}
+       }) do
+    Map.new(cm, fn {k, %Opamp.Proto.AgentConfigFile{body: body, content_type: ct}} ->
+      {k, %{body: body, content_type: ct}}
+    end)
+  end
+
+  defp serialize_effective_config(_), do: nil
+
+  defp serialize_health(%Opamp.Proto.ComponentHealth{} = h) do
+    %{
+      healthy: h.healthy,
+      status: h.status,
+      last_error: h.last_error,
+      component_health_map:
+        Map.new(h.component_health_map, fn {k, v} -> {k, serialize_health(v)} end)
+    }
+  end
+
+  defp serialize_health(_), do: nil
+
+  defp serialize_remote_config_status(%Opamp.Proto.RemoteConfigStatus{} = s) do
+    %{status: Atom.to_string(s.status), error_message: s.error_message}
+  end
+
+  defp serialize_remote_config_status(_), do: nil
 end

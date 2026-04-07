@@ -1,5 +1,6 @@
 defmodule TailsWeb.OpAMPSerializer do
   @behaviour Phoenix.Socket.Serializer
+  require Logger
   use Agent
 
   alias Phoenix.Socket.Reply
@@ -12,7 +13,6 @@ defmodule TailsWeb.OpAMPSerializer do
 
   def fastlane!(%Broadcast{} = msg) do
     msg = %Message{topic: msg.topic, event: msg.event, payload: msg.payload}
-
     {:socket_push, :binary, encode_data(msg.payload)}
   end
 
@@ -21,11 +21,6 @@ defmodule TailsWeb.OpAMPSerializer do
   end
 
   def encode!(%Reply{} = reply) do
-    # IO.puts("--------------- reply")
-    # IO.inspect(reply)
-    # IO.inspect(Agent.get(:connections, &MapSet.to_list(&1)))
-    # IO.puts("--------------- reply")
-
     case reply.status do
       :error -> {:socket_push, :binary, encode_data(get_error_message(reply.payload))}
       _ -> {:socket_push, :binary, encode_data(reply.payload)}
@@ -33,10 +28,6 @@ defmodule TailsWeb.OpAMPSerializer do
   end
 
   def encode!(%Message{} = msg) do
-    # IO.puts("--------------- msg")
-    # IO.inspect(msg)
-    # IO.inspect(Agent.get(:connections, &MapSet.to_list(&1)))
-    # IO.puts("--------------- msg")
     {:socket_push, :binary, encode_data(msg.payload)}
   end
 
@@ -89,27 +80,32 @@ defmodule TailsWeb.OpAMPSerializer do
     }
   end
 
-  defp decode_binary(<<
-         _header::size(8),
-         data::binary
-       >>) do
-    proto = Opamp.Proto.AgentToServer.decode(data)
-    instance_uuid = UUID.binary_to_string!(proto.instance_uid)
-    # IO.puts("-----------------------")
-    # IO.puts("is a memember?")
-    # IO.inspect(Agent.get(:connections, &MapSet.member?(&1, proto.instance_uid)))
-    # IO.inspect(Agent.get(:connections, &MapSet.to_list/1))
-    # IO.puts("-----------------------")
+  defp decode_binary(<<_header::size(8), data::binary>>) do
+    try do
+      proto = Opamp.Proto.AgentToServer.decode(data)
+      instance_uuid = UUID.binary_to_string!(proto.instance_uid)
 
-    case Agent.get(:connections, &MapSet.member?(&1, instance_uuid)) do
-      false -> respond_join(proto, instance_uuid)
-      true -> respond_heartbeat(proto, instance_uuid)
+      case Agent.get(:connections, &MapSet.member?(&1, instance_uuid)) do
+        false -> respond_join(proto, instance_uuid)
+        true -> respond_heartbeat(proto, instance_uuid)
+      end
+    catch
+      error ->
+        Logger.error("Failed to decode OpAMP message: #{inspect(error)}")
+
+        %Message{
+          topic: "agents:error",
+          event: "error",
+          payload: %{error: error},
+          ref: 0,
+          join_ref: "error"
+        }
     end
   end
 
   defp respond_join(proto, instance_uuid) do
     Agent.update(:connections, &MapSet.put(&1, instance_uuid))
-    IO.puts("JOINING")
+    Logger.info("OpAMP agent joining: #{instance_uuid}")
 
     %Message{
       topic: "agents:" <> instance_uuid,

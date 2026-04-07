@@ -14,6 +14,7 @@ defmodule Opamp.Proto.ServerToAgentFlags do
 
   field(:ServerToAgentFlags_Unspecified, 0)
   field(:ServerToAgentFlags_ReportFullState, 1)
+  field(:ServerToAgentFlags_ReportAvailableComponents, 2)
 end
 
 defmodule Opamp.Proto.ServerCapabilities do
@@ -77,6 +78,9 @@ defmodule Opamp.Proto.AgentCapabilities do
   field(:AgentCapabilities_AcceptsRestartCommand, 1024)
   field(:AgentCapabilities_ReportsHealth, 2048)
   field(:AgentCapabilities_ReportsRemoteConfig, 4096)
+  field(:AgentCapabilities_ReportsHeartbeat, 8192)
+  field(:AgentCapabilities_ReportsAvailableComponents, 16384)
+  field(:AgentCapabilities_ReportsConnectionSettingsStatus, 32768)
 end
 
 defmodule Opamp.Proto.RemoteConfigStatuses do
@@ -90,6 +94,17 @@ defmodule Opamp.Proto.RemoteConfigStatuses do
   field(:RemoteConfigStatuses_FAILED, 3)
 end
 
+defmodule Opamp.Proto.ConnectionSettingsStatuses do
+  @moduledoc false
+
+  use Protobuf, enum: true, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
+
+  field(:ConnectionSettingsStatuses_UNSET, 0)
+  field(:ConnectionSettingsStatuses_APPLIED, 1)
+  field(:ConnectionSettingsStatuses_APPLYING, 2)
+  field(:ConnectionSettingsStatuses_FAILED, 3)
+end
+
 defmodule Opamp.Proto.PackageStatusEnum do
   @moduledoc false
 
@@ -99,6 +114,7 @@ defmodule Opamp.Proto.PackageStatusEnum do
   field(:PackageStatusEnum_InstallPending, 1)
   field(:PackageStatusEnum_Installing, 2)
   field(:PackageStatusEnum_InstallFailed, 3)
+  field(:PackageStatusEnum_Downloading, 4)
 end
 
 defmodule Opamp.Proto.AgentToServer do
@@ -133,6 +149,16 @@ defmodule Opamp.Proto.AgentToServer do
   )
 
   field(:custom_message, 13, type: Opamp.Proto.CustomMessage, json_name: "customMessage")
+
+  field(:available_components, 14,
+    type: Opamp.Proto.AvailableComponents,
+    json_name: "availableComponents"
+  )
+
+  field(:connection_settings_status, 15,
+    type: Opamp.Proto.ConnectionSettingsStatus,
+    json_name: "connectionSettingsStatus"
+  )
 end
 
 defmodule Opamp.Proto.AgentDisconnect do
@@ -166,6 +192,53 @@ defmodule Opamp.Proto.CertificateRequest do
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
   field(:csr, 1, type: :bytes)
+end
+
+defmodule Opamp.Proto.AvailableComponents.ComponentsEntry do
+  @moduledoc false
+
+  use Protobuf, map: true, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
+
+  field(:key, 1, type: :string)
+  field(:value, 2, type: Opamp.Proto.ComponentDetails)
+end
+
+defmodule Opamp.Proto.AvailableComponents do
+  @moduledoc false
+
+  use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
+
+  field(:components, 1,
+    repeated: true,
+    type: Opamp.Proto.AvailableComponents.ComponentsEntry,
+    map: true
+  )
+
+  field(:hash, 2, type: :bytes)
+end
+
+defmodule Opamp.Proto.ComponentDetails.SubComponentMapEntry do
+  @moduledoc false
+
+  use Protobuf, map: true, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
+
+  field(:key, 1, type: :string)
+  field(:value, 2, type: Opamp.Proto.ComponentDetails)
+end
+
+defmodule Opamp.Proto.ComponentDetails do
+  @moduledoc false
+
+  use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
+
+  field(:metadata, 1, repeated: true, type: Opamp.Proto.KeyValue)
+
+  field(:sub_component_map, 2,
+    repeated: true,
+    type: Opamp.Proto.ComponentDetails.SubComponentMapEntry,
+    json_name: "subComponentMap",
+    map: true
+  )
 end
 
 defmodule Opamp.Proto.ServerToAgent do
@@ -213,6 +286,14 @@ defmodule Opamp.Proto.OpAMPConnectionSettings do
   field(:destination_endpoint, 1, type: :string, json_name: "destinationEndpoint")
   field(:headers, 2, type: Opamp.Proto.Headers)
   field(:certificate, 3, type: Opamp.Proto.TLSCertificate)
+
+  field(:heartbeat_interval_seconds, 4,
+    type: :uint64,
+    json_name: "heartbeatIntervalSeconds"
+  )
+
+  field(:tls, 5, type: Opamp.Proto.TLSConnectionSettings)
+  field(:proxy, 6, type: Opamp.Proto.ProxyConnectionSettings)
 end
 
 defmodule Opamp.Proto.TelemetryConnectionSettings do
@@ -223,6 +304,8 @@ defmodule Opamp.Proto.TelemetryConnectionSettings do
   field(:destination_endpoint, 1, type: :string, json_name: "destinationEndpoint")
   field(:headers, 2, type: Opamp.Proto.Headers)
   field(:certificate, 3, type: Opamp.Proto.TLSCertificate)
+  field(:tls, 4, type: Opamp.Proto.TLSConnectionSettings)
+  field(:proxy, 5, type: Opamp.Proto.ProxyConnectionSettings)
 end
 
 defmodule Opamp.Proto.OtherConnectionSettings.OtherSettingsEntry do
@@ -249,6 +332,31 @@ defmodule Opamp.Proto.OtherConnectionSettings do
     json_name: "otherSettings",
     map: true
   )
+
+  field(:tls, 5, type: Opamp.Proto.TLSConnectionSettings)
+  field(:proxy, 6, type: Opamp.Proto.ProxyConnectionSettings)
+end
+
+defmodule Opamp.Proto.TLSConnectionSettings do
+  @moduledoc false
+
+  use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
+
+  field(:ca_pem_contents, 1, type: :string, json_name: "caPemContents")
+  field(:include_system_ca_certs_pool, 2, type: :bool, json_name: "includeSystemCaCertsPool")
+  field(:insecure_skip_verify, 3, type: :bool, json_name: "insecureSkipVerify")
+  field(:min_version, 4, type: :string, json_name: "minVersion")
+  field(:max_version, 5, type: :string, json_name: "maxVersion")
+  field(:cipher_suites, 6, repeated: true, type: :string, json_name: "cipherSuites")
+end
+
+defmodule Opamp.Proto.ProxyConnectionSettings do
+  @moduledoc false
+
+  use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
+
+  field(:url, 1, type: :string)
+  field(:connect_headers, 2, type: Opamp.Proto.Headers, json_name: "connectHeaders")
 end
 
 defmodule Opamp.Proto.Headers do
@@ -273,9 +381,9 @@ defmodule Opamp.Proto.TLSCertificate do
 
   use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
 
-  field(:public_key, 1, type: :bytes, json_name: "publicKey")
+  field(:cert, 1, type: :bytes)
   field(:private_key, 2, type: :bytes, json_name: "privateKey")
-  field(:ca_public_key, 3, type: :bytes, json_name: "caPublicKey")
+  field(:ca_cert, 3, type: :bytes, json_name: "caCert")
 end
 
 defmodule Opamp.Proto.ConnectionSettingsOffers.OtherConnectionsEntry do
@@ -348,6 +456,7 @@ defmodule Opamp.Proto.DownloadableFile do
   field(:download_url, 1, type: :string, json_name: "downloadUrl")
   field(:content_hash, 2, type: :bytes, json_name: "contentHash")
   field(:signature, 3, type: :bytes)
+  field(:headers, 4, type: Opamp.Proto.Headers)
 end
 
 defmodule Opamp.Proto.ServerErrorResponse do
@@ -442,6 +551,20 @@ defmodule Opamp.Proto.RemoteConfigStatus do
   field(:error_message, 3, type: :string, json_name: "errorMessage")
 end
 
+defmodule Opamp.Proto.ConnectionSettingsStatus do
+  @moduledoc false
+
+  use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
+
+  field(:last_connection_settings_hash, 1,
+    type: :bytes,
+    json_name: "lastConnectionSettingsHash"
+  )
+
+  field(:status, 2, type: Opamp.Proto.ConnectionSettingsStatuses, enum: true)
+  field(:error_message, 3, type: :string, json_name: "errorMessage")
+end
+
 defmodule Opamp.Proto.PackageStatuses.PackagesEntry do
   @moduledoc false
 
@@ -478,6 +601,20 @@ defmodule Opamp.Proto.PackageStatus do
   field(:server_offered_hash, 5, type: :bytes, json_name: "serverOfferedHash")
   field(:status, 6, type: Opamp.Proto.PackageStatusEnum, enum: true)
   field(:error_message, 7, type: :string, json_name: "errorMessage")
+
+  field(:download_details, 8,
+    type: Opamp.Proto.PackageDownloadDetails,
+    json_name: "downloadDetails"
+  )
+end
+
+defmodule Opamp.Proto.PackageDownloadDetails do
+  @moduledoc false
+
+  use Protobuf, syntax: :proto3, protoc_gen_elixir_version: "0.12.0"
+
+  field(:download_percent, 1, type: :double, json_name: "downloadPercent")
+  field(:download_bytes_per_second, 2, type: :double, json_name: "downloadBytesPerSecond")
 end
 
 defmodule Opamp.Proto.AgentIdentification do
