@@ -3,8 +3,6 @@ defmodule TailsWeb.TailLive.Index do
 
   alias Tails.{Telemetry, Agents, Filters}
 
-  @stream_limit 1000
-
   @columns %{
     metrics: ["timeUnixNano", "Name", "Description"],
     spans: [
