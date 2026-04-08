@@ -43,7 +43,7 @@ defmodule TailsWeb do
         layouts: [html: TailsWeb.Layouts]
 
       import Plug.Conn
-      import TailsWeb.Gettext
+      use Gettext, backend: TailsWeb.Gettext
 
       unquote(verified_routes())
     end
@@ -85,7 +85,7 @@ defmodule TailsWeb do
       import Phoenix.HTML
       # Core UI components and translation
       import TailsWeb.CoreComponents
-      import TailsWeb.Gettext
+      use Gettext, backend: TailsWeb.Gettext
 
       # LiveReact component rendering
       import LiveReact

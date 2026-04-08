@@ -20,14 +20,18 @@ defmodule Tails.Telemetry do
   end
 
   def new_message(data) do
-    # IO.inspect(data)
-    m = %Message{data: data, id: UUID.uuid4()}
-    broadcast({:ok, m}, message_event(data))
+    case message_event(data) do
+      :unknown -> {:ok, :ignored}
+      event ->
+        m = %Message{data: data, id: UUID.uuid4()}
+        broadcast({:ok, m}, event)
+    end
   end
 
   def message_event(%{"resourceSpans" => _data}), do: :spans
   def message_event(%{"resourceMetrics" => _data}), do: :metrics
   def message_event(%{"resourceLogs" => _data}), do: :logs
+  def message_event(_), do: :unknown
 
   def string_from_value(%{"stringValue" => val}), do: val
   def string_from_value(%{"boolValue" => val}), do: to_string(val)
