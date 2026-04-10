@@ -17,7 +17,7 @@ defmodule TailsWeb.CoreComponents do
   use Phoenix.Component
 
   alias Phoenix.LiveView.JS
-  import TailsWeb.Gettext
+  use Gettext, backend: TailsWeb.Gettext
 
   @doc """
   Renders a modal.

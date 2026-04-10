@@ -4,16 +4,16 @@ defmodule TailsWeb.TailLive.Index do
   alias Tails.{Telemetry, Agents, Filters}
 
   @columns %{
-    metrics: ["timeUnixNano", "Name", "Description"],
+    metrics: ["timeUnixNano", "name", "description"],
     spans: [
-      "StartTimeUnixNano",
-      "EndTimeUnixNano",
-      "TraceId",
-      "ParentSpanId",
-      "SpanId",
-      "Name",
-      "Kind",
-      "Status"
+      "startTimeUnixNano",
+      "endTimeUnixNano",
+      "traceId",
+      "parentSpanId",
+      "spanId",
+      "name",
+      "kind",
+      "status"
     ],
     logs: ["timeUnixNano", "severityText", "spanId", "body"]
   }
@@ -220,7 +220,11 @@ defmodule TailsWeb.TailLive.Index do
   end
 
   defp toggle_remote_tap(socket) when socket.assigns.remote_tap_started do
-    GenServer.stop(socket.assigns.remote_tap_pid, :normal)
+    pid = socket.assigns.remote_tap_pid
+
+    if is_pid(pid) and Process.alive?(pid) do
+      GenServer.stop(pid, :normal)
+    end
 
     {:ok,
      socket

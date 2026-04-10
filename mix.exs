@@ -63,7 +63,7 @@ defmodule Tails.MixProject do
       {:jason, "~> 1.4"},
       {:protobuf, "~> 0.13.0"},
       {:bandit, "~> 1.6"},
-      {:websockex, "~> 0.4.3"},
+      {:mint_web_socket, "~> 1.0"},
       {:uuid, "~> 1.1"}
     ]
   end
